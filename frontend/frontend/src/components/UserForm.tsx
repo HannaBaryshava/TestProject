@@ -8,7 +8,7 @@ const UserForm = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const response = await fetch('http://localhost/my_test_project/backend/public/index.php', {
+        const response = await fetch('/api/users/create', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -21,6 +21,8 @@ const UserForm = () => {
             console.log('Response Data:', result);
             navigate('/result', {state: result.data});
         } else {
+            const errorData = await response.json();
+            console.error('Error Data:', errorData);
             alert('Error creating user');
         }
     };
