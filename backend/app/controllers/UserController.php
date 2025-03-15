@@ -1,7 +1,7 @@
 <?php
 
 namespace app\controllers;
-use App\system\App;
+use system\App;
 
 class UserController
 {
@@ -16,27 +16,36 @@ class UserController
         header("Access-Control-Allow-Headers: Content-Type, Authorization");
 
         if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-            http_response_code(200);
             exit(0);
         }
 
         if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $data = json_decode(file_get_contents("php://input"));
-            $name = $data->name;
-            $email = $data->email;
-            error_log("Received data: " . print_r($data, true));
-            $response = [
-                "status" => "success",
-                "data" => [
-                    "name" => $name,
-                    "email" => $email,
-                ],
-                "message" => "User created successfully"
-            ];
-            echo json_encode($response);
-        } else {
-            echo json_encode(["status" => "false", "message" => "error occurred"]);
+            if (isset($data->name, $data->email, $data->country, $data->city, $data->gender, $data->status)) {
+                $name = $data->name;
+                $email = $data->email;
+                $country = $data->country;
+                $city = $data->city;
+                $gender = $data->gender;
+                $status = $data->status;
+                error_log("Received data: " . print_r($data, true));
+                $response = [
+                    "status" => "success",
+                    "data" => [
+                        "name" => $name,
+                        "email" => $email,
+                        "country" => $country,
+                        "city" => $city,
+                        "gender" => $gender,
+                        "status" => $status
+                    ],
+                    "message" => "User created successfully"
+                ];
+                echo json_encode($response);
+            } else {
+                echo json_encode(["status" => "false", "message" => "error occurred"]);
+            }
         }
-    }
 
+    }
 }

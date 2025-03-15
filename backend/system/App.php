@@ -1,5 +1,5 @@
 <?php
-namespace app\system;
+namespace system;
 
 class App
 {
@@ -23,7 +23,7 @@ class App
             $controller->$method();
         } else {
             header("HTTP/1.0 404 Not Found");
-            echo "404 Not Found";
+            echo "404 Not Found";  //done
         }
     }
 }

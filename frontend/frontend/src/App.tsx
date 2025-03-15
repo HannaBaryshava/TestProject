@@ -8,7 +8,7 @@ function App() {
     return (
         <Router>
             <nav>
-                <Link to="/">Home</Link> | <Link to="/new">Create User</Link>
+                <Link to="/">Home</Link> | <Link to="/new">Create user</Link>
             </nav>
             <Routes>
                 <Route path="/" element={<Home />} />
