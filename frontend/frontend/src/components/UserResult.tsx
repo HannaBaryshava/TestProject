@@ -13,15 +13,19 @@ const UserResult = () => {
 
 
     return (
-        <div>
-            <h1>User Created</h1>
-            <p><strong>Name:</strong> {name}</p>
-            <p><strong>Email:</strong> {email}</p>
-            <p><strong>Country of residence:</strong> {country}</p>
-            <p><strong>City:</strong> {city}</p>
-            <p><strong>Gender:</strong> {gender}</p>
-            <p><strong>Status:</strong> {status}</p>
-            <a href="/">Back to Home</a>
+        <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-md space-y-4">
+            <h1 className="text-2xl font-bold text-center">User Created</h1>
+            <div className="space-y-2">
+                <p><strong className="text-gray-700">Name:</strong> {name}</p>
+                <p><strong className="text-gray-700">Email:</strong> {email}</p>
+                <p><strong className="text-gray-700">Country of residence:</strong> {country}</p>
+                <p><strong className="text-gray-700">City:</strong> {city}</p>
+                <p><strong className="text-gray-700">Gender:</strong> {gender}</p>
+                <p><strong className="text-gray-700">Status:</strong> {status}</p>
+            </div>
+            <a href="/" className="block text-center text-orange-400 hover:text-orange-500 transition duration-300">
+                Back to Home
+            </a>
         </div>
     );
 };
