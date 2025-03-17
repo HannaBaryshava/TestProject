@@ -1,33 +1,98 @@
-// import {useState} from 'react';
+import {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
-import useActionState from './useActionState';
+// import { useActionState } from 'react';
+// import useActionState from './useActionState';
 
 const UserForm = () => {
     const navigate = useNavigate();
-    const {
-        formData,
-        handleChange,
-        handleSubmit,
-        errors,
-        isSubmitting,
-    } = useActionState();
 
-    console.log('Current errors:', errors);
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        country: '',
+        city: '',
+        gender: '',
+        status: ''
+    });
 
-    const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        await handleSubmit(e);
-        if (!isSubmitting && Object.keys(errors).length === 0) {
-            navigate('/result', { state: formData });
-        }
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        // console.log(`Updating ${name} to:`, value);
+        setFormData((prev) => {
+            const updatedFormData = {
+                ...prev,
+                [name]: value
+            };
+            // console.log('Updated formData:', updatedFormData);
+            return updatedFormData;
+        });
     };
 
+    const validateForm = () => {
+        const newErrors: { [key: string]: string } = {};
+
+        if (!formData.name) newErrors.name = 'Name is required';
+        if (!formData.email) newErrors.email = 'Email is required';
+        if (!formData.country) newErrors.country = 'Country is required';
+        if (!formData.city) newErrors.city = 'City is required';
+        if (!formData.gender) newErrors.gender = 'Gender is required';
+        if (!formData.status) newErrors.status = 'Status is required';
+
+        setErrors(newErrors);
+
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!validateForm()) {
+            console.log('Form validation failed');
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        console.log('Submitting formData:', formData);
+
+        try {
+            const response = await fetch('/api/users/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            console.log('Response status:', response.status);
+            const text = await response.text();
+            console.log('Response text:', text);
+
+            if (response.ok) {
+                const result = JSON.parse(text);
+                console.log('Response Data:', result);
+                navigate('/result', { state: result.data });
+            } else {
+                console.error('Error response:', text);
+                alert('Error creating user');
+
+            }
+        } catch (error) {
+            console.error('Error during submission:', error);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
     const commonInputClasses = "mt-1 block w-full rounded-md border-gray-700 shadow-sm hover:border-transparent text-gray-700 hover:bg-orange-100 focus:outline-none transition duration-300";
     const commonClasses = "mt-1 block w-full rounded-md border border-gray-300 shadow-sm bg-white text-gray-700 hover:border-transparent hover:bg-orange-100 focus:outline-none transition duration-300";
 
     return (
         <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-md space-y-2">
             <h1 className="mb-8 text-black text-2xl font-bold text-center">Create new user</h1>
-            <form onSubmit={onSubmit} className="space-y-1">
+            <form onSubmit={handleSubmit} className="space-y-1">
                 <label className="block text-left">
                     <span className="text-gray-700">Your first and last name:</span>
                     <input

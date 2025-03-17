@@ -7,6 +7,8 @@ class UserController
 {
     public function create()
     {
+        $errors = [];
+
         error_log("UserController::create called");
         header("Access-Control-Allow-Origin: *");
 //        header("Access-Control-Allow-Headers: Content-Type");
@@ -22,29 +24,31 @@ class UserController
         if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $data = json_decode(file_get_contents("php://input"));
             if (isset($data->name, $data->email, $data->country, $data->city, $data->gender, $data->status)) {
-                $name = $data->name;
-                $email = $data->email;
-                $country = $data->country;
-                $city = $data->city;
-                $gender = $data->gender;
-                $status = $data->status;
+
                 error_log("Received data: " . print_r($data, true));
                 $response = [
-                    "status" => "success",
                     "data" => [
-                        "name" => $name,
-                        "email" => $email,
-                        "country" => $country,
-                        "city" => $city,
-                        "gender" => $gender,
-                        "status" => $status
+                        "name" => $data->name,
+                        "email" => $data->email,
+                        "country" => $data->country,
+                        "city" => $data->city,
+                        "gender" => $data->gender,
+                        "status" => $data->status
                     ],
+                    "errors" => (object)[],
                     "message" => "User created successfully"
                 ];
-                echo json_encode($response);
+
             } else {
-                echo json_encode(["status" => "false", "message" => "error occurred"]);
+                $response = [
+                    "data" => (object)[],
+                    "errors" => [
+                        "general" => "All fields are required"
+                    ],
+                    "message" => "Validation errors occurred"
+                ];
             }
+            echo json_encode($response);
         }
 
     }
