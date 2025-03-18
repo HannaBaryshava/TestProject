@@ -1,6 +1,6 @@
 <?php
 namespace system;
-
+phpinfo();
 class App
 {
     protected $routes = [];
@@ -12,6 +12,7 @@ class App
 
     public function run()
     {
+
         $requestMethod = $_SERVER['REQUEST_METHOD'];
         $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
