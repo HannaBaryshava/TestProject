@@ -1,14 +1,16 @@
 <?php
-//phpinfo();
-
-ob_start();
-
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-
 error_log("Request received at index.php");
 
 require __DIR__ . '/../bootstrap/autoload.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    header("Access-Control-Allow-Origin: *");
+    header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+    header("Access-Control-Allow-Headers: Content-Type, Authorization");
+    header("Access-Control-Max-Age: 86400"); // Cache for 1 day
+    http_response_code(204); // No content
+    exit();
+}
 
 header("Access-Control-Allow-Origin: *");
 //header("Access-Control-Allow-Headers: Content-Type");
@@ -21,7 +23,4 @@ $app = new system\App();
 $app->setRoutes(include __DIR__ . '/../bootstrap/route.php');
 $app->run();
 
-echo "<script>console.log('Request received at index.php');</script>";
 //$app->run();
-
-ob_end_flush();

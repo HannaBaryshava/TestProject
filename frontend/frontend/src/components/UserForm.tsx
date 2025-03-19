@@ -3,47 +3,53 @@ import {useNavigate} from 'react-router-dom';
 // import { useActionState } from 'react';
 // import useActionState from './useActionState';
 
-const UserForm = () => {
-    const navigate = useNavigate();
 
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        country: '',
-        city: '',
-        gender: '',
-        status: ''
-    });
 
-    const [errors, setErrors] = useState<{ [key: string]: string }>({});
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const UserForm = () => {
+        // const [state, formAction] = useActionState(handleFormSubmission, {
+        //     errors: {},
+        //     message: '',
+        // });
+        const navigate = useNavigate();
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        // console.log(`Updating ${name} to:`, value);
-        setFormData((prev) => {
-            const updatedFormData = {
-                ...prev,
-                [name]: value
-            };
-            // console.log('Updated formData:', updatedFormData);
-            return updatedFormData;
+        const [formData, setFormData] = useState({
+            name: '',
+            email: '',
+            country: '',
+            city: '',
+            gender: '',
+            status: ''
         });
-    };
 
-    const validateForm = () => {
-        const newErrors: { [key: string]: string } = {};
+        const [errors, setErrors] = useState<{ [key: string]: string }>({});
+        const [isSubmitting, setIsSubmitting] = useState(false);
 
-        if (!formData.name) newErrors.name = 'Name is required';
-        if (!formData.email) newErrors.email = 'Email is required';
-        if (!formData.country) newErrors.country = 'Country is required';
-        if (!formData.city) newErrors.city = 'City is required';
-        if (!formData.gender) newErrors.gender = 'Gender is required';
-        if (!formData.status) newErrors.status = 'Status is required';
+        const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+            const { name, value } = e.target;
+            // console.log(`Updating ${name} to:`, value);
+            setFormData((prev) => {
+                const updatedFormData = {
+                    ...prev,
+                    [name]: value
+                };
+                // console.log('Updated formData:', updatedFormData);
+                return updatedFormData;
+            });
+        };
 
-        setErrors(newErrors);
+        const validateForm = () => {
+            const newErrors: { [key: string]: string } = {};
 
-        return Object.keys(newErrors).length === 0;
+            if (!formData.name) newErrors.name = 'Name is required';
+            if (!formData.email) newErrors.email = 'Email is required';
+            if (!formData.country) newErrors.country = 'Country is required';
+            if (!formData.city) newErrors.city = 'City is required';
+            if (!formData.gender) newErrors.gender = 'Gender is required';
+            if (!formData.status) newErrors.status = 'Status is required';
+
+            setErrors(newErrors);
+
+            return Object.keys(newErrors).length === 0;
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -59,7 +65,7 @@ const UserForm = () => {
         console.log('Submitting formData:', formData);
 
         try {
-            const response = await fetch('/api/users/create', {
+            const response = await fetch('http://localhost:80/api/users/create', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -68,6 +74,7 @@ const UserForm = () => {
             });
 
             console.log('Response status:', response.status);
+
             const text = await response.text();
             console.log('Response text:', text);
 
@@ -75,10 +82,16 @@ const UserForm = () => {
                 const result = JSON.parse(text);
                 console.log('Response Data:', result);
                 navigate('/result', { state: result.data });
-            } else {
-                console.error('Error response:', text);
-                alert('Error creating user');
+            }  else {
 
+                try {
+                    const errorData = JSON.parse(text);
+                    console.error('Server error details:', errorData);
+                    alert(`Server error: ${errorData.message || errorData.error || 'Unknown error'}`);
+                } catch (parseError) {
+                    console.error('Server error text:', text);
+                    alert(`Server error: ${text}`);
+                }
             }
         } catch (error) {
             console.error('Error during submission:', error);

@@ -1,6 +1,6 @@
 <?php
 namespace system;
-phpinfo();
+
 class App
 {
     protected $routes = [];
@@ -12,11 +12,13 @@ class App
 
     public function run()
     {
-
         $requestMethod = $_SERVER['REQUEST_METHOD'];
         $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
         $routeKey = "$requestMethod $requestUri";
+
+//        echo "Route key: $routeKey";
+
         if (isset($this->routes[$routeKey])) {
             list($controllerClass, $method) = $this->routes[$routeKey];
 
