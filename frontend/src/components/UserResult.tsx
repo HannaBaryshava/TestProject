@@ -1,4 +1,5 @@
 import { useLocation } from 'react-router-dom';
+// import { useContext } from 'react';
 
 const UserResult = () => {
     const location = useLocation();

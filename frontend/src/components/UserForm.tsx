@@ -1,68 +1,102 @@
+"use client";
+
 import {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
-// import { useActionState } from 'react';
+import FormGroup from './FormGroup';
+import { useActionState } from 'react';
 // import useActionState from './useActionState';
 
+const commonInput = "mt-1 block w-full p-2 rounded-md border-gray-700 shadow-sm hover:border-transparent text-gray-700 hover:bg-orange-100 focus:outline-none transition duration-300";
+const commonSelect = "mt-1 block w-full  p-2 rounded-md border border-gray-300 shadow-sm bg-white text-gray-700 hover:border-transparent hover:bg-orange-100 focus:outline-none transition duration-300";
+
+type FormData = {
+    name: string;
+    email: string;
+    country: string;
+    city: string;
+    gender: string;
+    status: string;
+};
+
+type FormState = {
+    errors: FormErrors;
+}
+
+// Ошибки (автоматическая генерация на основе FormData)
+type FormErrors = Partial<Record<keyof FormData, string>>;  //???
 
 
-    const UserForm = () => {
-        // const [state, formAction] = useActionState(handleFormSubmission, {
-        //     errors: {},
-        //     message: '',
-        // });
-        const navigate = useNavigate();
+const isValidFormData = (formData: FormData): FormErrors => {
 
-        const [formData, setFormData] = useState({
-            name: '',
-            email: '',
-            country: '',
-            city: '',
-            gender: '',
-            status: ''
-        });
 
-        const [errors, setErrors] = useState<{ [key: string]: string }>({});
-        const [isSubmitting, setIsSubmitting] = useState(false);
+    const errors: FormErrors = {};
 
-        const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-            const { name, value } = e.target;
-            // console.log(`Updating ${name} to:`, value);
-            setFormData((prev) => {
-                const updatedFormData = {
-                    ...prev,
-                    [name]: value
-                };
-                // console.log('Updated formData:', updatedFormData);
-                return updatedFormData;
-            });
-        };
-
-        const validateForm = () => {
-            const newErrors: { [key: string]: string } = {};
-
-            if (!formData.name) newErrors.name = 'Name is required';
-            if (!formData.email) newErrors.email = 'Email is required';
-            if (!formData.country) newErrors.country = 'Country is required';
-            if (!formData.city) newErrors.city = 'City is required';
-            if (!formData.gender) newErrors.gender = 'Gender is required';
-            if (!formData.status) newErrors.status = 'Status is required';
-
-            setErrors(newErrors);
-
-            return Object.keys(newErrors).length === 0;
+    const errorMessages = {
+        name: 'Name is required',
+        email: 'Email is required',
+        country: 'Country is required',
+        city: 'City is required',
+        gender: 'Gender is required',
+        status: 'Status is required'
     };
+
+    (Object.keys(formData) as (keyof FormData)[]).forEach((key) => {
+        if (!formData[key].trim()) {
+            errors[key] = errorMessages[key];
+        }
+    });
+
+    return errors;
+};
+
+
+const UserForm = () => {
+
+
+    const navigate = useNavigate();
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const initialState: FormState = {
+        errors: {},
+        // message: '',
+    }
+
+    const [state, formAction] = useActionState (handleSubmit, initialState);
+
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        country: '',
+        city: '',
+        gender: '',
+        status: ''
+    });
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const {name, value} = e.target;
+        setFormData((prev) => {
+            const updatedFormData = {
+                ...prev,
+                [name]: value
+            };
+            return updatedFormData;
+        });
+    };
+
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!validateForm()) {
+        const validationErrors = isValidFormData(formData);
+        setErrors(validationErrors);
+
+        if (Object.keys(validationErrors).length > 0) {
             console.log('Form validation failed');
             return;
         }
 
         setIsSubmitting(true);
-
-        console.log('Submitting formData:', formData);
 
         try {
             const response = await fetch('http://localhost:80/api/users/create', {
@@ -73,75 +107,71 @@ import {useNavigate} from 'react-router-dom';
                 body: JSON.stringify(formData)
             });
 
-            console.log('Response status:', response.status);
-
-            const text = await response.text();
-            console.log('Response text:', text);
-
             if (response.ok) {
-                const result = JSON.parse(text);
+                const result = await response.json();
                 console.log('Response Data:', result);
-                navigate('/result', { state: result.data });
-            }  else {
-
+                alert(result.message?.[0] || 'Operation successful');
+                navigate('/result', {state: result.data || result});
+            } else {
                 try {
-                    const errorData = JSON.parse(text);
+                    const errorData = await response.json();
                     console.error('Server error details:', errorData);
-                    alert(`Server error: ${errorData.message || errorData.error || 'Unknown error'}`);
+                    alert(`Server error: ${errorData.message?.[0] || 'Unknown error'}`);
                 } catch (parseError) {
-                    console.error('Server error text:', text);
-                    alert(`Server error: ${text}`);
+                    console.error('Server error text:', parseError);
+                    alert(`Server error: Unknown error`);
                 }
             }
         } catch (error) {
             console.error('Error during submission:', error);
+            alert(`Request failed: ${errors.message || 'Unknown error'}`);
         } finally {
             setIsSubmitting(false);
         }
     };
-    const commonInputClasses = "mt-1 block w-full rounded-md border-gray-700 shadow-sm hover:border-transparent text-gray-700 hover:bg-orange-100 focus:outline-none transition duration-300";
-    const commonClasses = "mt-1 block w-full rounded-md border border-gray-300 shadow-sm bg-white text-gray-700 hover:border-transparent hover:bg-orange-100 focus:outline-none transition duration-300";
 
     return (
         <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-md space-y-2">
             <h1 className="mb-8 text-black text-2xl font-bold text-center">Create new user</h1>
-            <form onSubmit={handleSubmit} className="space-y-1">
-                <label className="block text-left">
-                    <span className="text-gray-700">Your first and last name:</span>
+            <form onSubmit={formAction} className="space-y-1">
+                <FormGroup
+                    title="Your first and last name:"
+                    error={state.errors.name}
+                >
                     <input
                         type="text"
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
-                        // required
                         placeholder="Enter first and last name"
-                        className={commonInputClasses}
+                        className={commonInput}
                     />
-                    {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
-                </label>
+                </FormGroup>
                 <br/>
-                <label className="block text-left">
-                     <span className="text-gray-700">Email:</span>
+                <FormGroup
+                    title="Email"
+                    error={errors.email}
+                >
                     <input
                         type="email"
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        required
-                        placeholder="Enetr email"
-                        className={commonInputClasses}
+                        placeholder="Enter email"
+                        className={commonInput}
                     />
-                    {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
-                </label>
+                </FormGroup>
                 <br/>
-                <label className="block text-left">
-                     <span className="text-gray-700">Country of residence:</span>
+                <FormGroup
+                    title="Country of residence:"
+                    error={errors.country}
+                >
                     <select
                         name="country"
                         value={formData.country}
                         onChange={handleChange}
                         required
-                        className={commonClasses}
+                        className={commonSelect}
                     >
                         <option value="" disabled>
                             Select your country
@@ -150,11 +180,12 @@ import {useNavigate} from 'react-router-dom';
                         <option value="poland">Poland</option>
                         <option value="belarus">Belarus</option>
                     </select>
-                    {errors.country && <p style={{color: 'red'}}>{errors.country}</p>}
-                </label>
+                </FormGroup>
                 <br/>
-                <label className="block text-left">
-                    <span className="text-gray-700">City:</span>
+                <FormGroup
+                    title="City"
+                    error={errors.city}
+                >
                     <input
                         type="text"
                         name="city"
@@ -162,21 +193,20 @@ import {useNavigate} from 'react-router-dom';
                         onChange={handleChange}
                         required
                         placeholder="Enter city"
-                        className={commonInputClasses}
+                        className={commonInput}
                     />
-                    {errors.city && <p style={{color: 'red'}}>{errors.city}</p>}
-                </label>
+                </FormGroup>
                 <br/>
-
-                    <label className="block text-left">
-                        <span className="text-gray-700">Gender:</span>
-
+                <FormGroup
+                    title="Gender"
+                    error={errors.gender}
+                >
                     <select
                         name="gender"
                         value={formData.gender}
                         onChange={handleChange}
                         required
-                        className={commonClasses}
+                        className={commonSelect}
                     >
                         <option value="" disabled>
                             Select your gender
@@ -184,18 +214,18 @@ import {useNavigate} from 'react-router-dom';
                         <option value="male">Male</option>
                         <option value="female">Female</option>
                     </select>
-                    {errors.gender && <p style={{color: 'red'}}>{errors.gender}</p>}
-                </label>
+                </FormGroup>
                 <br/>
-                <label className="block text-left">
-                    <span className="text-gray-700">Status:</span>
-
+                <FormGroup
+                    title="Gender"
+                    error={errors.status}
+                >
                     <select
                         name="status"
                         value={formData.status}
                         onChange={handleChange}
                         required
-                        className={commonClasses}
+                        className={commonSelect}
                     >
                         <option value="" disabled>
                             Select your status
@@ -203,8 +233,7 @@ import {useNavigate} from 'react-router-dom';
                         <option value="active">Active user</option>
                         <option value="inactive">Inactive user</option>
                     </select>
-                    {errors.status && <p style={{color: 'red'}}>{errors.status}</p>}
-                </label>
+                </FormGroup>
                 <br/>
                 <button type="submit" disabled={isSubmitting || Object.keys(errors).length > 0}
                         className="text-orange-400 bg-white border border-orange-400 rounded-md px-4 py-2 hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-orange-200 transition duration-300">
