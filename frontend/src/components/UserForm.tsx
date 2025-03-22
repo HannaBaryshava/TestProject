@@ -1,13 +1,15 @@
-"use client";
-
 import {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import FormGroup from './FormGroup';
-import { useActionState } from 'react';
+// import { useActionState } from 'react';
 // import useActionState from './useActionState';
 
-const commonInput = "mt-1 block w-full p-2 rounded-md border-gray-700 shadow-sm hover:border-transparent text-gray-700 hover:bg-orange-100 focus:outline-none transition duration-300";
-const commonSelect = "mt-1 block w-full  p-2 rounded-md border border-gray-300 shadow-sm bg-white text-gray-700 hover:border-transparent hover:bg-orange-100 focus:outline-none transition duration-300";
+// Типы для стилей элементов
+type InputStyle = string;
+type SelectStyle = string;
+
+const commonInput: InputStyle = "mt-1 block w-full p-2 rounded-md border-gray-700 shadow-sm hover:border-transparent text-gray-700 hover:bg-orange-100 focus:outline-none transition duration-300";
+const commonSelect: SelectStyle = "mt-1 block w-full  p-2 rounded-md border border-gray-300 shadow-sm bg-white text-gray-700 hover:border-transparent hover:bg-orange-100 focus:outline-none transition duration-300";
 
 type FormData = {
     name: string;
@@ -18,18 +20,17 @@ type FormData = {
     status: string;
 };
 
-type FormState = {
-    errors: FormErrors;
+interface IResponse {
+    data: FormData;
+    errors: Record<string, never>;
+    message: string[];
 }
 
-// Ошибки (автоматическая генерация на основе FormData)
-type FormErrors = Partial<Record<keyof FormData, string>>;  //???
+// Ошибки (автоматическая генерация на основе FormData) ???
+type FormErrors = Partial<Record<keyof FormData, string>>;
 
 
 const isValidFormData = (formData: FormData): FormErrors => {
-
-
-    const errors: FormErrors = {};
 
     const errorMessages = {
         name: 'Name is required',
@@ -40,29 +41,30 @@ const isValidFormData = (formData: FormData): FormErrors => {
         status: 'Status is required'
     };
 
-    (Object.keys(formData) as (keyof FormData)[]).forEach((key) => {
+    return (Object.keys(formData) as Array<keyof FormData>).reduce((acc, key) => {
         if (!formData[key].trim()) {
-            errors[key] = errorMessages[key];
+            acc[key] = errorMessages[key];
         }
-    });
+        return acc;
+    }, {} as FormErrors);
+    };
 
-    return errors;
-};
 
 
-const UserForm = () => {
 
+const UserForm = () => { //type!
+    // const initialState: FormState = {
+    //     errors: {},
+    // }
+    //
+    // const [state, formAction] = useActionState(handleSubmit, {
+    //     errors: {},
+    //     message: '',
+    // });
 
     const navigate = useNavigate();
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    const initialState: FormState = {
-        errors: {},
-        // message: '',
-    }
-
-    const [state, formAction] = useActionState (handleSubmit, initialState);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -73,19 +75,16 @@ const UserForm = () => {
         status: ''
     });
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
         const {name, value} = e.target;
-        setFormData((prev) => {
-            const updatedFormData = {
-                ...prev,
-                [name]: value
-            };
-            return updatedFormData;
-        });
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
     };
 
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent): Promise<void> => {
         e.preventDefault();
 
         const validationErrors = isValidFormData(formData);
@@ -98,45 +97,38 @@ const UserForm = () => {
 
         setIsSubmitting(true);
 
-        try {
-            const response = await fetch('http://localhost:80/api/users/create', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(formData)
-            });
+    try {
+        const response = await fetch('http://localhost:80/api/users/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
 
-            if (response.ok) {
-                const result = await response.json();
-                console.log('Response Data:', result);
-                alert(result.message?.[0] || 'Operation successful');
-                navigate('/result', {state: result.data || result});
-            } else {
-                try {
-                    const errorData = await response.json();
-                    console.error('Server error details:', errorData);
-                    alert(`Server error: ${errorData.message?.[0] || 'Unknown error'}`);
-                } catch (parseError) {
-                    console.error('Server error text:', parseError);
-                    alert(`Server error: Unknown error`);
-                }
-            }
-        } catch (error) {
-            console.error('Error during submission:', error);
-            alert(`Request failed: ${errors.message || 'Unknown error'}`);
-        } finally {
-            setIsSubmitting(false);
+        if (response.ok) {
+            const result: IResponse  = await response.json();
+            console.log('Response Data:', result);
+            alert(result.message?.[0] || 'Operation successful');
+            navigate('/result', {state: result.data || result});
+        } else {
+            const errorData: IResponse = await response.json();
+            console.error('Server error details:', errorData);
+            alert(`Server error: ${errorData.message?.[0] || 'Unknown error'}`);
         }
+    } catch (error) {
+        console.error('Error during submission:', error);
+        alert(`Request failed: Unknown error`);
+    }
     };
 
     return (
         <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-md space-y-2">
             <h1 className="mb-8 text-black text-2xl font-bold text-center">Create new user</h1>
-            <form onSubmit={formAction} className="space-y-1">
+            <form onSubmit={handleSubmit} className="space-y-1">
                 <FormGroup
                     title="Your first and last name:"
-                    error={state.errors.name}
+                    error={errors.name}
                 >
                     <input
                         type="text"
