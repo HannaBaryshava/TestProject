@@ -1,6 +1,6 @@
 "use client"
 
-import {useState} from 'react';
+import {useActionState, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import FormGroup from './FormGroup';
 import { handleSubmit } from './action.ts';
@@ -14,7 +14,7 @@ type SelectStyle = string;
 const commonInput: InputStyle = "mt-1 block w-full p-2 rounded-md border-gray-700 shadow-sm hover:border-transparent text-gray-700 hover:bg-orange-100 focus:outline-none transition duration-300";
 const commonSelect: SelectStyle = "mt-1 block w-full  p-2 rounded-md border border-gray-300 shadow-sm bg-white text-gray-700 hover:border-transparent hover:bg-orange-100 focus:outline-none transition duration-300";
 
-export type FormData = {
+export type Data = {
     name: string;
     email: string;
     country: string;
@@ -23,34 +23,12 @@ export type FormData = {
     status: string;
 };
 
-export interface IResponse {
-    data: FormData;
-    errors: Record<string, never>;
+export interface IResponse<T> {
+    data: T;
+    errors: Record<string, string>;
     message: string[];
 }
 
-const errorMessages: { [key in keyof FormData]: string } = {
-    name: 'Name is required',
-    email: 'Email is required',
-    country: 'Country is required',
-    city: 'City is required',
-    gender: 'Gender is required',
-    status: 'Status is required'
-};
-
-
-// Ошибки (автоматическая генерация на основе FormData) ???
-type FormErrors = Partial<Record<keyof FormData, string>>;
-
-
-const isValidFormData = (formData: FormData, errorMessages: { [key in keyof FormData]: string }): FormErrors => {
-    return (Object.keys(formData) as Array<keyof FormData>).reduce((acc, key) => {
-        if (!formData[key].trim()) {
-            acc[key] = errorMessages[key];
-        }
-        return acc;
-    }, {} as FormErrors);
-};
 
 
 export const UserForm = () => {  //type!
@@ -70,10 +48,11 @@ export const UserForm = () => {  //type!
     //     errors: {},
     // }
     //
-    // const [message, formAction] = useActionState(handleSubmit, {
-    //     errors: {},
-    //     message: '',
-    // });
+    const [state, formAction, isPending] = useActionState<IResponse<FormData>>(handleSubmit, {
+        errors: {},
+        message: [],
+        data: {}
+    });
 
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
@@ -89,21 +68,18 @@ export const UserForm = () => {  //type!
         <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-md space-y-2">
             <h1 className="mb-8 text-black text-2xl font-bold text-center">Create new user</h1>
             <form
-                onSubmit={(e) => {
-                e.preventDefault();
-                handleSubmit(formData, setErrors, setIsSubmitting, navigate, isValidFormData, errorMessages);
-            }}
-                    // action={formAction}
+
+                    action={formAction}
                     className="space-y-1">
                 <FormGroup
                     title="Your first and last name:"
-                    error={errors.name}
+                    error={state.errors.name}
                 >
                     <input
                         type="text"
                         name="name"
-                        value={formData.name}
-                        onChange={handleChange}
+                        // value={formData.name}
+                        // onChange={handleChange}
                         placeholder="Enter first and last name"
                         className={commonInput}
                     />
