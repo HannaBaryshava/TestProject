@@ -1,9 +1,8 @@
 import {Link} from 'react-router-dom';
 
+const navigateButton = "text-orange-400 hover:text-orange-500";
+
 const Navigation = () => {
-
-    const navigateButton = "text-orange-400 hover:text-orange-500";
-
     return (
         <nav className="p-4">
             <Link to="/" className={navigateButton}>Home</Link>

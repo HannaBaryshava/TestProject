@@ -1,7 +1,6 @@
 <?php
 
 namespace app\controllers;
-use system\App;
 
 class UserController
 {
@@ -23,7 +22,7 @@ class UserController
 
         if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $data = json_decode(file_get_contents("php://input"));
-            if (isset($data->name, $data->email, $data->country, $data->city, $data->gender, $data->status)) {
+            if (!empty($data->name) && !empty($data->email) && !empty($data->country) && !empty($data->city) && !empty($data->gender) && !empty($data->status)) {
 
                 error_log("Received data: " . print_r($data, true));
                 $response = [
@@ -36,18 +35,17 @@ class UserController
                         "status" => $data->status
                     ],
                     "errors" => (object)[],
-                    "message" => "User created successfully"
+                    "message" => ["User created successfully"]
                 ];
 
             } else {
                 $response = [
                     "data" => (object)[],
-                    "errors" => [
-                        "general" => "All fields are required"
-                    ],
-                    "message" => "Validation errors occurred"
+                    "errors" => (object)[], //?
+                    "message" => ["Validation errors occurred"]
                 ];
             }
+
             echo json_encode($response);
         }
 

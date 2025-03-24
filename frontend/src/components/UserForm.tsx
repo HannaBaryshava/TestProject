@@ -1,8 +1,11 @@
+"use client"
+
 import {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import FormGroup from './FormGroup';
+import { handleSubmit } from './action.ts';
 // import { useActionState } from 'react';
-// import useActionState from './useActionState';
+
 
 // Типы для стилей элементов
 type InputStyle = string;
@@ -11,7 +14,7 @@ type SelectStyle = string;
 const commonInput: InputStyle = "mt-1 block w-full p-2 rounded-md border-gray-700 shadow-sm hover:border-transparent text-gray-700 hover:bg-orange-100 focus:outline-none transition duration-300";
 const commonSelect: SelectStyle = "mt-1 block w-full  p-2 rounded-md border border-gray-300 shadow-sm bg-white text-gray-700 hover:border-transparent hover:bg-orange-100 focus:outline-none transition duration-300";
 
-type FormData = {
+export type FormData = {
     name: string;
     email: string;
     country: string;
@@ -20,52 +23,40 @@ type FormData = {
     status: string;
 };
 
-interface IResponse {
+export interface IResponse {
     data: FormData;
     errors: Record<string, never>;
     message: string[];
 }
 
+const errorMessages: { [key in keyof FormData]: string } = {
+    name: 'Name is required',
+    email: 'Email is required',
+    country: 'Country is required',
+    city: 'City is required',
+    gender: 'Gender is required',
+    status: 'Status is required'
+};
+
+
 // Ошибки (автоматическая генерация на основе FormData) ???
 type FormErrors = Partial<Record<keyof FormData, string>>;
 
 
-const isValidFormData = (formData: FormData): FormErrors => {
-
-    const errorMessages = {
-        name: 'Name is required',
-        email: 'Email is required',
-        country: 'Country is required',
-        city: 'City is required',
-        gender: 'Gender is required',
-        status: 'Status is required'
-    };
-
+const isValidFormData = (formData: FormData, errorMessages: { [key in keyof FormData]: string }): FormErrors => {
     return (Object.keys(formData) as Array<keyof FormData>).reduce((acc, key) => {
         if (!formData[key].trim()) {
             acc[key] = errorMessages[key];
         }
         return acc;
     }, {} as FormErrors);
-    };
+};
 
 
-
-
-const UserForm = () => { //type!
-    // const initialState: FormState = {
-    //     errors: {},
-    // }
-    //
-    // const [state, formAction] = useActionState(handleSubmit, {
-    //     errors: {},
-    //     message: '',
-    // });
-
+export const UserForm = () => {  //type!
     const navigate = useNavigate();
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
-
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -74,6 +65,16 @@ const UserForm = () => { //type!
         gender: '',
         status: ''
     });
+
+    // const initialState: FormState = {
+    //     errors: {},
+    // }
+    //
+    // const [message, formAction] = useActionState(handleSubmit, {
+    //     errors: {},
+    //     message: '',
+    // });
+
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
         const {name, value} = e.target;
@@ -84,48 +85,16 @@ const UserForm = () => { //type!
     };
 
 
-    const handleSubmit = async (e: React.FormEvent): Promise<void> => {
-        e.preventDefault();
-
-        const validationErrors = isValidFormData(formData);
-        setErrors(validationErrors);
-
-        if (Object.keys(validationErrors).length > 0) {
-            console.log('Form validation failed');
-            return;
-        }
-
-        setIsSubmitting(true);
-
-    try {
-        const response = await fetch('http://localhost:80/api/users/create', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(formData)
-        });
-
-        if (response.ok) {
-            const result: IResponse  = await response.json();
-            console.log('Response Data:', result);
-            alert(result.message?.[0] || 'Operation successful');
-            navigate('/result', {state: result.data || result});
-        } else {
-            const errorData: IResponse = await response.json();
-            console.error('Server error details:', errorData);
-            alert(`Server error: ${errorData.message?.[0] || 'Unknown error'}`);
-        }
-    } catch (error) {
-        console.error('Error during submission:', error);
-        alert(`Request failed: Unknown error`);
-    }
-    };
-
     return (
         <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-md space-y-2">
             <h1 className="mb-8 text-black text-2xl font-bold text-center">Create new user</h1>
-            <form onSubmit={handleSubmit} className="space-y-1">
+            <form
+                onSubmit={(e) => {
+                e.preventDefault();
+                handleSubmit(formData, setErrors, setIsSubmitting, navigate, isValidFormData, errorMessages);
+            }}
+                    // action={formAction}
+                    className="space-y-1">
                 <FormGroup
                     title="Your first and last name:"
                     error={errors.name}
@@ -231,6 +200,7 @@ const UserForm = () => { //type!
                         className="text-orange-400 bg-white border border-orange-400 rounded-md px-4 py-2 hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-orange-200 transition duration-300">
                     Submit
                 </button>
+
             </form>
         </div>
     );
