@@ -1,7 +1,6 @@
 "use client"
 
-import {useActionState, useState} from 'react';
-import {useNavigate} from 'react-router-dom';
+import {useActionState} from 'react';
 import FormGroup from './FormGroup';
 import { handleSubmit } from './action.ts';
 // import { useActionState } from 'react';
@@ -32,17 +31,17 @@ export interface IResponse<T> {
 
 
 export const UserForm = () => {  //type!
-    const navigate = useNavigate();
-    const [errors, setErrors] = useState<{ [key: string]: string }>({});
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        country: '',
-        city: '',
-        gender: '',
-        status: ''
-    });
+
+    // const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+    // const [formData, setFormData] = useState({
+    //     name: '',
+    //     email: '',
+    //     country: '',
+    //     city: '',
+    //     gender: '',
+    //     status: ''
+    // });
 
     // const initialState: FormState = {
     //     errors: {},
@@ -55,20 +54,19 @@ export const UserForm = () => {  //type!
     });
 
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
-        const {name, value} = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
+    // const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
+    //     const {name, value} = e.target;
+    //     setFormData(prev => ({
+    //         ...prev,
+    //         [name]: value
+    //     }));
+    // };
 
 
     return (
         <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-md space-y-2">
             <h1 className="mb-8 text-black text-2xl font-bold text-center">Create new user</h1>
             <form
-
                     action={formAction}
                     className="space-y-1">
                 <FormGroup
@@ -87,13 +85,11 @@ export const UserForm = () => {  //type!
                 <br/>
                 <FormGroup
                     title="Email"
-                    error={errors.email}
+                    error={state.errors.email}
                 >
                     <input
                         type="email"
                         name="email"
-                        value={formData.email}
-                        onChange={handleChange}
                         placeholder="Enter email"
                         className={commonInput}
                     />
@@ -101,12 +97,10 @@ export const UserForm = () => {  //type!
                 <br/>
                 <FormGroup
                     title="Country of residence:"
-                    error={errors.country}
+                    error={state.errors.country}
                 >
                     <select
                         name="country"
-                        value={formData.country}
-                        onChange={handleChange}
                         required
                         className={commonSelect}
                     >
@@ -121,13 +115,11 @@ export const UserForm = () => {  //type!
                 <br/>
                 <FormGroup
                     title="City"
-                    error={errors.city}
+                    error={state.errors.city}
                 >
                     <input
                         type="text"
                         name="city"
-                        value={formData.city}
-                        onChange={handleChange}
                         required
                         placeholder="Enter city"
                         className={commonInput}
@@ -136,12 +128,10 @@ export const UserForm = () => {  //type!
                 <br/>
                 <FormGroup
                     title="Gender"
-                    error={errors.gender}
+                    error={state.errors.gender}
                 >
                     <select
                         name="gender"
-                        value={formData.gender}
-                        onChange={handleChange}
                         required
                         className={commonSelect}
                     >
@@ -155,12 +145,10 @@ export const UserForm = () => {  //type!
                 <br/>
                 <FormGroup
                     title="Gender"
-                    error={errors.status}
+                    error={state.errors.status}
                 >
                     <select
                         name="status"
-                        value={formData.status}
-                        onChange={handleChange}
                         required
                         className={commonSelect}
                     >
@@ -172,7 +160,7 @@ export const UserForm = () => {  //type!
                     </select>
                 </FormGroup>
                 <br/>
-                <button type="submit" disabled={isSubmitting || Object.keys(errors).length > 0}
+                <button type="submit" disabled={isPending || Object.keys(state.errors).length > 0}
                         className="text-orange-400 bg-white border border-orange-400 rounded-md px-4 py-2 hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-orange-200 transition duration-300">
                     Submit
                 </button>

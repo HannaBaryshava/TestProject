@@ -1,8 +1,9 @@
-// handleSubmit.ts
+// action.ts
 "use server"
 
-import { IResponse } from './UserForm';
-import { Data } from './UserForm';
+import {IResponse} from './UserForm';
+import {Data} from './UserForm';
+import {useNavigate} from "react-router-dom";
 
 const isValidFormData = (formData: Data, errorMessages: IResponse<FormData>['errors']): IResponse<FormData>['errors'] => {
     return (Object.keys(formData) as Array<keyof Data>).reduce<IResponse<FormData>['errors']>((acc, key) => {
@@ -23,7 +24,11 @@ const errorMessages: IResponse<FormData>['errors'] = {
 };
 
 export const handleSubmit = async (
-    prevState: {errors: IResponse<FormData>["errors"], data: IResponse<FormData>['data'], message: IResponse<FormData>['message']},
+    prevState: {
+        errors: IResponse<FormData>["errors"],
+        data: IResponse<FormData>['data'],
+        message: IResponse<FormData>['message']
+    },
     formData: FormData,
     // setErrors: React.Dispatch<React.SetStateAction<{ [key: string]: string }>>,
     // setIsSubmitting: React.Dispatch<React.SetStateAction<boolean>>,
@@ -32,23 +37,26 @@ export const handleSubmit = async (
     // errorMessages: { [key: string]: string }
 ): Promise<IResponse<FormData | null>> => {
     console.log(prevState);
-    const body = {};
-    for (let entry of formData.entries()){
+    const body: { [key: string]: string }  = {};
+    for (let entry of formData.entries()) {
         console.log(entry);
-        body[key as keyof Data] = value;
+        body[entry[0]] = entry[1] as string;
     }
+    console.log(body);
+    console.log(formData);
 
-    const result: IResponse<FormData|null> = {
+    const result: IResponse<FormData | null> = {
         errors: {},
         message: [],
         data: null
     };
 
-    const validationErrors = isValidFormData(formData, errorMessages);
+    const validationErrors = {}; //isValidFormData(formData, errorMessages);
+    const navigate = useNavigate();
 
     if (Object.keys(validationErrors).length > 0) {
         result.errors = validationErrors;
-        return  result;
+        return result;
     }
 
 
@@ -65,7 +73,7 @@ export const handleSubmit = async (
             return await response.json();
             console.log('Response Data:', result);
             alert(result.message?.[0] || 'Operation successful');
-            navigate('/result', { state: result.data || result });
+            navigate('/result', {state: result.data || result});
 
         } else {
             const errorData: IResponse<Data> = await response.json();
