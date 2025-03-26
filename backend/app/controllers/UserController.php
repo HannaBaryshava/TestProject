@@ -4,38 +4,27 @@ namespace app\controllers;
 
 //require_once '../config/config.php';
 //require_once '../../database/database.php';
+    use backend\database\Database;
+    use PDOException;
+    use Exception;
 
-class UserController
-{
-
-    private $pdo;
-
-    public function __construct()
+    class UserController
     {
-//        $this->db = new Database;
+        private $pdo;
 
-        $host = 'localhost';
-        $dbname = 'user_db';
-        $username = 'root';
-        $password = 'passw0rd_mySql';
-
-        try {
-            $this->pdo = new \PDO(
-                "mysql:host=$host;dbname=$dbname;charset=utf8mb4",
-                $username,
-                $password,
-                [
-                    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                    \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC
-                ]
-            );
-        } catch (\PDOException $e) {
-            error_log("Database connection failed: " . $e->getMessage());
-            die(json_encode([
-                "errors" => ["database" => "Connection error"],
-                "message" => "Service unavailable"
-            ]));
-        }
+        public function __construct()
+        {
+            try {
+                $database = new Database();
+                $this->pdo = $database->getConnection();
+            }catch (PDOException $e) {
+                http_response_code(500);
+                echo json_encode([
+                    "error" => "Service unavailable",
+                    "details" => $e->getMessage()
+                ]);
+                exit;
+            }
     }
     public function create()
     {
