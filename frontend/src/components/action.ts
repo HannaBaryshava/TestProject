@@ -23,6 +23,8 @@ const errorMessages: IResponse<FormData>['errors'] = {
     status: 'Status is required'
 };
 
+
+
 export const handleSubmit = async (
     prevState: {
         errors: IResponse<FormData>["errors"],
@@ -43,7 +45,7 @@ export const handleSubmit = async (
         body[entry[0]] = entry[1] as string;
     }
     console.log(body);
-    console.log(formData);
+    // console.log(formData);
 
     const result: IResponse<FormData | null> = {
         errors: {},
@@ -52,13 +54,13 @@ export const handleSubmit = async (
     };
 
     const validationErrors = {}; //isValidFormData(formData, errorMessages);
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
 
     if (Object.keys(validationErrors).length > 0) {
         result.errors = validationErrors;
+        // console.log("Result:", result);
         return result;
     }
-
 
     try {
         const response = await fetch('http://localhost:80/api/users/create', {
@@ -66,23 +68,43 @@ export const handleSubmit = async (
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: formData,
+            body: JSON.stringify(body),
         });
 
         if (response.ok) {
-            return await response.json();
+
             console.log('Response Data:', result);
             alert(result.message?.[0] || 'Operation successful');
-            navigate('/result', {state: result.data || result});
+            // navigate('/result', {state: result.data || result});
+
+            // return await response.json();
+
+            const responseData = await response.json();
+            return {
+                data: responseData.data,
+                errors: responseData.errors || {},
+                message: responseData.message || ['Success']
+            };
 
         } else {
             const errorData: IResponse<Data> = await response.json();
             console.error('Server error details:', errorData);
             alert(`Server error: ${errorData.message?.[0] || 'Unknown error'}`);
+            return {
+                data: null,
+                errors: errorData.errors || {},
+                message: errorData.message || ['Error']
+            };
+
         }
     } catch (error) {
         console.error('Error during submission:', error);
-        alert(`Request failed: Unknown error`);
 
+        alert(`Request failed: Unknown error`);
+        return {
+            data: null,
+            errors: { network: 'Failed to connect' },
+            message: ['Network error']
+        };
     }
 };
