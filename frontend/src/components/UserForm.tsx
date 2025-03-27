@@ -2,7 +2,7 @@
 
 import {useActionState} from 'react';
 import FormGroup from './FormGroup';
-import { handleSubmit } from './action.ts';
+import {handleSubmit} from './action.ts';
 // import { useActionState } from 'react';
 
 
@@ -28,47 +28,20 @@ export interface IResponse<T> {
     message: string[];
 }
 
-
-
 export const UserForm = () => {  //type!
 
-    // const [errors, setErrors] = useState<{ [key: string]: string }>({});
-
-    // const [formData, setFormData] = useState({
-    //     name: '',
-    //     email: '',
-    //     country: '',
-    //     city: '',
-    //     gender: '',
-    //     status: ''
-    // });
-
-    // const initialState: FormState = {
-    //     errors: {},
-    // }
-    //
-    const [state, formAction, isPending] = useActionState<IResponse<FormData>>(handleSubmit, {
+    const [state, formAction, isPending] = useActionState<IResponse<FormData>, FormData>(handleSubmit, {
         errors: {},
         message: [],
-        data: {}
+        data: {} as FormData
     });
-
-
-    // const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
-    //     const {name, value} = e.target;
-    //     setFormData(prev => ({
-    //         ...prev,
-    //         [name]: value
-    //     }));
-    // };
-
 
     return (
         <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-md space-y-2">
             <h1 className="mb-8 text-black text-2xl font-bold text-center">Create new user</h1>
             <form
-                    action={formAction}
-                    className="space-y-1">
+                action={formAction}
+                className="space-y-1">
                 <FormGroup
                     title="Your first and last name:"
                     error={state.errors.name}
@@ -76,8 +49,6 @@ export const UserForm = () => {  //type!
                     <input
                         type="text"
                         name="name"
-                        // value={formData.name}
-                        // onChange={handleChange}
                         placeholder="Enter first and last name"
                         className={commonInput}
                     />

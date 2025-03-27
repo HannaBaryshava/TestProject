@@ -24,7 +24,6 @@ const errorMessages: IResponse<FormData>['errors'] = {
 };
 
 
-
 export const handleSubmit = async (
     prevState: {
         errors: IResponse<FormData>["errors"],
@@ -32,25 +31,21 @@ export const handleSubmit = async (
         message: IResponse<FormData>['message']
     },
     formData: FormData,
-    // setErrors: React.Dispatch<React.SetStateAction<{ [key: string]: string }>>,
-    // setIsSubmitting: React.Dispatch<React.SetStateAction<boolean>>,
     // navigate: Function,
-    // isValidFormData: Function,
-    // errorMessages: { [key: string]: string }
-): Promise<IResponse<FormData | null>> => {
+): Promise<IResponse<FormData>> => {
     console.log(prevState);
-    const body: { [key: string]: string }  = {};
+
+    const body: { [key: string]: string } = {};
     for (let entry of formData.entries()) {
         console.log(entry);
         body[entry[0]] = entry[1] as string;
     }
-    console.log(body);
-    // console.log(formData);
+    console.log("Body:", body);
 
-    const result: IResponse<FormData | null> = {
+    const result: IResponse<FormData> = {
         errors: {},
         message: [],
-        data: null
+        data: {} as FormData
     };
 
     const validationErrors = {}; //isValidFormData(formData, errorMessages);
@@ -58,7 +53,7 @@ export const handleSubmit = async (
 
     if (Object.keys(validationErrors).length > 0) {
         result.errors = validationErrors;
-        // console.log("Result:", result);
+        console.log("Result:", result);
         return result;
     }
 
@@ -71,15 +66,19 @@ export const handleSubmit = async (
             body: JSON.stringify(body),
         });
 
+        console.log('HTTP статус:', response.status);
+        console.log('Заголовки:', [...response.headers.entries()]);
+
+        const responseData = await response.json();
+        console.log("responseData:", responseData);
+
         if (response.ok) {
 
-            console.log('Response Data:', result);
             alert(result.message?.[0] || 'Operation successful');
             // navigate('/result', {state: result.data || result});
 
             // return await response.json();
 
-            const responseData = await response.json();
             return {
                 data: responseData.data,
                 errors: responseData.errors || {},
@@ -91,7 +90,7 @@ export const handleSubmit = async (
             console.error('Server error details:', errorData);
             alert(`Server error: ${errorData.message?.[0] || 'Unknown error'}`);
             return {
-                data: null,
+                data: {} as FormData,
                 errors: errorData.errors || {},
                 message: errorData.message || ['Error']
             };
@@ -102,8 +101,8 @@ export const handleSubmit = async (
 
         alert(`Request failed: Unknown error`);
         return {
-            data: null,
-            errors: { network: 'Failed to connect' },
+            data: {} as FormData,
+            errors: {network: 'Failed to connect'},
             message: ['Network error']
         };
     }
