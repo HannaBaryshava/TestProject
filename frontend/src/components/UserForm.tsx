@@ -1,10 +1,10 @@
 "use client"
 
-import {useActionState} from 'react';
+import {useActionState, useEffect} from 'react';
 import FormGroup from './FormGroup';
 import {handleSubmit} from './action.ts';
 // import { useActionState } from 'react';
-
+import {useNavigate} from "react-router-dom";
 
 // Типы для стилей элементов
 type InputStyle = string;
@@ -26,15 +26,27 @@ export interface IResponse<T> {
     data: T;
     errors: Record<string, string>;
     message: string[];
+    navigation?: {
+        path: string;
+        state: unknown;
+    };
 }
 
 export const UserForm = () => {  //type!
-
+    const navigate = useNavigate();
     const [state, formAction, isPending] = useActionState<IResponse<FormData>, FormData>(handleSubmit, {
         errors: {},
         message: [],
         data: {} as FormData
     });
+
+    useEffect(() => {
+        if (state?.navigation) {
+            navigate(state.navigation.path, {
+                state: state.navigation.state
+            });
+        }
+    }, [state, navigate]);
 
     return (
         <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-md space-y-2">

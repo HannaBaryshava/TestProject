@@ -3,25 +3,25 @@
 
 import {IResponse} from './UserForm';
 import {Data} from './UserForm';
-import {useNavigate} from "react-router-dom";
 
-const isValidFormData = (formData: Data, errorMessages: IResponse<FormData>['errors']): IResponse<FormData>['errors'] => {
-    return (Object.keys(formData) as Array<keyof Data>).reduce<IResponse<FormData>['errors']>((acc, key) => {
-        if (!formData[key].trim()) {
-            acc[key] = errorMessages[key];
-        }
-        return acc;
-    }, {});
-};
 
-const errorMessages: IResponse<FormData>['errors'] = {
-    name: 'Name is required',
-    email: 'Email is required',
-    country: 'Country is required',
-    city: 'City is required',
-    gender: 'Gender is required',
-    status: 'Status is required'
-};
+// const isValidFormData = (formData: Data, errorMessages: IResponse<FormData>['errors']): IResponse<FormData>['errors'] => {
+//     return (Object.keys(formData) as Array<keyof Data>).reduce<IResponse<FormData>['errors']>((acc, key) => {
+//         if (!formData[key].trim()) {
+//             acc[key] = errorMessages[key];
+//         }
+//         return acc;
+//     }, {});
+// };
+//
+// const errorMessages: IResponse<FormData>['errors'] = {
+//     name: 'Name is required',
+//     email: 'Email is required',
+//     country: 'Country is required',
+//     city: 'City is required',
+//     gender: 'Gender is required',
+//     status: 'Status is required'
+// };
 
 
 export const handleSubmit = async (
@@ -45,17 +45,17 @@ export const handleSubmit = async (
     const result: IResponse<FormData> = {
         errors: {},
         message: [],
-        data: {} as FormData
+        data: {} as FormData,
     };
 
     const validationErrors = {}; //isValidFormData(formData, errorMessages);
     // const navigate = useNavigate();
 
-    if (Object.keys(validationErrors).length > 0) {
-        result.errors = validationErrors;
-        console.log("Result:", result);
-        return result;
-    }
+    // if (Object.keys(validationErrors).length > 0) {
+    //     result.errors = validationErrors;
+    //     console.log("Result:", result);
+    //     return result;
+    // }
 
     try {
         const response = await fetch('http://localhost:80/api/users/create', {
@@ -74,7 +74,7 @@ export const handleSubmit = async (
 
         if (response.ok) {
 
-            alert(result.message?.[0] || 'Operation successful');
+            // alert(result.message?.[0] || 'Operation successful');
             // navigate('/result', {state: result.data || result});
 
             // return await response.json();
@@ -82,7 +82,11 @@ export const handleSubmit = async (
             return {
                 data: responseData.data,
                 errors: responseData.errors || {},
-                message: responseData.message || ['Success']
+                message: responseData.message || ['Success'],
+                navigation: {
+                    path: '/result',
+                    state: responseData.data
+                }
             };
 
         } else {
