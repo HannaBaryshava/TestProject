@@ -1,5 +1,11 @@
+import React, {PropsWithChildren} from "react";
 
-const FormGroup = ({ title, error, children }) => {
+type Props = {
+    title: string;
+    error?: string; //затипизировать title, error
+} & PropsWithChildren
+
+const FormGroup: React.FC<Props> = ({ title, error, children }) => {
     return (
         <label className="block text-left mb-4">
         <span className="text-gray-700 font-medium mb-1 block">{title}:</span>
