@@ -1,11 +1,10 @@
 "use client"
 
-import {useState} from 'react';
-import {useNavigate} from 'react-router-dom';
+import {useActionState, useEffect} from 'react';
 import FormGroup from './FormGroup';
-import { handleSubmit } from './action.ts';
+import {handleSubmit} from './action.ts';
 // import { useActionState } from 'react';
-
+import {useNavigate} from "react-router-dom";
 
 // Типы для стилей элементов
 type InputStyle = string;
@@ -14,7 +13,7 @@ type SelectStyle = string;
 const commonInput: InputStyle = "mt-1 block w-full p-2 rounded-md border-gray-700 shadow-sm hover:border-transparent text-gray-700 hover:bg-orange-100 focus:outline-none transition duration-300";
 const commonSelect: SelectStyle = "mt-1 block w-full  p-2 rounded-md border border-gray-300 shadow-sm bg-white text-gray-700 hover:border-transparent hover:bg-orange-100 focus:outline-none transition duration-300";
 
-export type FormData = {
+export type Data = {
     name: string;
     email: string;
     country: string;
@@ -23,87 +22,45 @@ export type FormData = {
     status: string;
 };
 
-export interface IResponse {
-    data: FormData;
-    errors: Record<string, never>;
+export interface IResponse<T> {
+    data: T;
+    errors: Record<string, string>;
     message: string[];
+    navigation?: {
+        path: string;
+        state: unknown;
+    };
 }
-
-const errorMessages: { [key in keyof FormData]: string } = {
-    name: 'Name is required',
-    email: 'Email is required',
-    country: 'Country is required',
-    city: 'City is required',
-    gender: 'Gender is required',
-    status: 'Status is required'
-};
-
-
-// Ошибки (автоматическая генерация на основе FormData) ???
-type FormErrors = Partial<Record<keyof FormData, string>>;
-
-
-const isValidFormData = (formData: FormData, errorMessages: { [key in keyof FormData]: string }): FormErrors => {
-    return (Object.keys(formData) as Array<keyof FormData>).reduce((acc, key) => {
-        if (!formData[key].trim()) {
-            acc[key] = errorMessages[key];
-        }
-        return acc;
-    }, {} as FormErrors);
-};
-
 
 export const UserForm = () => {  //type!
     const navigate = useNavigate();
-    const [errors, setErrors] = useState<{ [key: string]: string }>({});
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        country: '',
-        city: '',
-        gender: '',
-        status: ''
+    const [state, formAction, isPending] = useActionState<IResponse<FormData>, FormData>(handleSubmit, {
+        errors: {},
+        message: [],
+        data: {} as FormData
     });
 
-    // const initialState: FormState = {
-    //     errors: {},
-    // }
-    //
-    // const [message, formAction] = useActionState(handleSubmit, {
-    //     errors: {},
-    //     message: '',
-    // });
-
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
-        const {name, value} = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
-
+    useEffect(() => {
+        if (state?.navigation) {
+            navigate(state.navigation.path, {
+                state: state.navigation.state
+            });
+        }
+    }, [state, navigate]);
 
     return (
         <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-md space-y-2">
             <h1 className="mb-8 text-black text-2xl font-bold text-center">Create new user</h1>
             <form
-                onSubmit={(e) => {
-                e.preventDefault();
-                handleSubmit(formData, setErrors, setIsSubmitting, navigate, isValidFormData, errorMessages);
-            }}
-                    // action={formAction}
-                    className="space-y-1">
+                action={formAction}
+                className="space-y-1">
                 <FormGroup
                     title="Your first and last name:"
-                    error={errors.name}
+                    error={state.errors.name}
                 >
                     <input
                         type="text"
                         name="name"
-                        value={formData.name}
-                        onChange={handleChange}
                         placeholder="Enter first and last name"
                         className={commonInput}
                     />
@@ -111,13 +68,11 @@ export const UserForm = () => {  //type!
                 <br/>
                 <FormGroup
                     title="Email"
-                    error={errors.email}
+                    error={state.errors.email}
                 >
                     <input
                         type="email"
                         name="email"
-                        value={formData.email}
-                        onChange={handleChange}
                         placeholder="Enter email"
                         className={commonInput}
                     />
@@ -125,12 +80,10 @@ export const UserForm = () => {  //type!
                 <br/>
                 <FormGroup
                     title="Country of residence:"
-                    error={errors.country}
+                    error={state.errors.country}
                 >
                     <select
                         name="country"
-                        value={formData.country}
-                        onChange={handleChange}
                         required
                         className={commonSelect}
                     >
@@ -145,13 +98,11 @@ export const UserForm = () => {  //type!
                 <br/>
                 <FormGroup
                     title="City"
-                    error={errors.city}
+                    error={state.errors.city}
                 >
                     <input
                         type="text"
                         name="city"
-                        value={formData.city}
-                        onChange={handleChange}
                         required
                         placeholder="Enter city"
                         className={commonInput}
@@ -160,12 +111,10 @@ export const UserForm = () => {  //type!
                 <br/>
                 <FormGroup
                     title="Gender"
-                    error={errors.gender}
+                    error={state.errors.gender}
                 >
                     <select
                         name="gender"
-                        value={formData.gender}
-                        onChange={handleChange}
                         required
                         className={commonSelect}
                     >
@@ -179,12 +128,10 @@ export const UserForm = () => {  //type!
                 <br/>
                 <FormGroup
                     title="Gender"
-                    error={errors.status}
+                    error={state.errors.status}
                 >
                     <select
                         name="status"
-                        value={formData.status}
-                        onChange={handleChange}
                         required
                         className={commonSelect}
                     >
@@ -196,7 +143,7 @@ export const UserForm = () => {  //type!
                     </select>
                 </FormGroup>
                 <br/>
-                <button type="submit" disabled={isSubmitting || Object.keys(errors).length > 0}
+                <button type="submit" disabled={isPending || Object.keys(state.errors).length > 0}
                         className="text-orange-400 bg-white border border-orange-400 rounded-md px-4 py-2 hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-orange-200 transition duration-300">
                     Submit
                 </button>
