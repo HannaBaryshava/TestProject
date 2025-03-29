@@ -99,7 +99,35 @@ class Database
         return $response;
     }
 
+    public function selectAllUsers(): array
+    {
+        $response = [
+            'data' => [],
+            'errors' => [],
+            'message' => ''
+        ];
 
+        try {
+            $stmt = $this->pdo->query("
+            SELECT id, name, email, country, city, gender, status 
+            FROM user_table
+        ");
+
+            $users = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            if ($users) {
+                $response['data'] = $users;
+                $response['message'] = 'Users found';
+            } else {
+                $response['message'] = 'No users found';
+            }
+        } catch (\PDOException $e) {
+            error_log("Database error: " . $e->getMessage());
+            $response['errors'] = ['database' => 'Database operation failed'];
+        }
+
+        return $response;
+    }
 
     public function getConnection(): PDO //skip
     {

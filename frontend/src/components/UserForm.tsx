@@ -3,15 +3,10 @@
 import {useActionState, useEffect} from 'react';
 import FormGroup from './FormGroup';
 import {handleSubmit} from './action.ts';
-// import { useActionState } from 'react';
 import {useNavigate} from "react-router-dom";
 
-// Типы для стилей элементов
-type InputStyle = string;
-type SelectStyle = string;
-
-const commonInput: InputStyle = "mt-1 block w-full p-2 rounded-md border-gray-700 shadow-sm hover:border-transparent text-gray-700 hover:bg-orange-100 focus:outline-none transition duration-300";
-const commonSelect: SelectStyle = "mt-1 block w-full  p-2 rounded-md border border-gray-300 shadow-sm bg-white text-gray-700 hover:border-transparent hover:bg-orange-100 focus:outline-none transition duration-300";
+const commonInput = "mt-1 block w-full p-2 rounded-md border-gray-700 shadow-sm hover:border-transparent text-gray-700 hover:bg-orange-100 focus:outline-none transition duration-300";
+const commonSelect = "mt-1 block w-full  p-2 rounded-md border border-gray-300 shadow-sm bg-white text-gray-700 hover:border-transparent hover:bg-orange-100 focus:outline-none transition duration-300";
 
 export type Data = {
     name: string;
@@ -32,7 +27,7 @@ export interface IResponse<T> {
     };
 }
 
-export const UserForm = () => {  //type!
+export const UserForm    = () => {  //type!
     const navigate = useNavigate();
     const [state, formAction, isPending] = useActionState<IResponse<FormData>, FormData>(handleSubmit, {
         errors: {},

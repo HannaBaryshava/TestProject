@@ -8,7 +8,6 @@ require_once __DIR__ . '/../../model/database/database.php';
 
 class UserController
 {
-
     private $db;
 
     public function __construct()
@@ -82,7 +81,16 @@ class UserController
 
             echo json_encode($response);
         }
+    }
 
+    public function getAllUsers()
+    {
 
+        if ($_SERVER["REQUEST_METHOD"] === "GET") {
+            $response = $this->db->selectAllUsers();
+
+            http_response_code(empty($response['errors']) ? 200 : 400);
+            echo json_encode($response);
+        }
     }
 }
