@@ -10,6 +10,7 @@ const commonInput = "mt-1 block w-full p-2 rounded-md border-gray-700 shadow-sm 
 const commonSelect = "mt-1 block w-full  p-2 rounded-md border border-gray-300 shadow-sm bg-white text-gray-700 hover:border-transparent hover:bg-orange-100 focus:outline-none transition duration-300";
 
 export type Data = {
+    id?: number;
     name: string;
     email: string;
     country: string;
@@ -47,6 +48,14 @@ export const UserForm    = () => {  //type!
             });
         }
     }, [state, navigate, setUserData]);
+
+    // useEffect(() => {
+    //     if (state?.data) {
+    //         setUserData(state.data as Data); //?
+    //         navigate('/result');
+    //     }
+    // }, [state, navigate, setUserData]);
+
 
     return (
         <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-md space-y-2">

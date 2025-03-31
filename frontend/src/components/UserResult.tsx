@@ -1,25 +1,26 @@
 import {useUserContext} from '../context/UserContext';
 import { Data } from './UserForm.tsx';
 
+type UserField = {
+    key: keyof Data;
+    label: string;
+};
+
+const userFields: UserField[] = [
+    { key: 'name', label: 'Name' },
+    { key: 'email', label: 'Email' },
+    { key: 'country', label: 'Country of residence' },
+    { key: 'city', label: 'City' },
+    { key: 'gender', label: 'Gender' },
+    { key: 'status', label: 'Status' }
+];
+
 const UserResult = () => {
     const { userData } = useUserContext();
-    type UserField = {
-        key: keyof Data;
-        label: string;
-    };
 
     if (!userData) {
         return <p>No user data found</p>;
     }
-
-    const userFields: UserField[] = [
-        { key: 'name', label: 'Name' },
-        { key: 'email', label: 'Email' },
-        { key: 'country', label: 'Country of residence' },
-        { key: 'city', label: 'City' },
-        { key: 'gender', label: 'Gender' },
-        { key: 'status', label: 'Status' }
-    ];
 
     return (
         <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-md space-y-4">

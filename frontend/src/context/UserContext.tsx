@@ -1,6 +1,6 @@
 // src/context/UserContext.ts
-import { createContext, useContext, useState } from 'react';
-import { Data } from '../components/UserForm.tsx';
+import {createContext, useContext, useState} from 'react';
+import {Data} from '../components/UserForm.tsx';
 
 type UserContextType = {
     userData: Data | null;
@@ -9,17 +9,18 @@ type UserContextType = {
 
 const UserContext = createContext<UserContextType>({
     userData: null,
-    setUserData: () => {},
+    setUserData: () => {
+    },
 });
 
-export const UserProvider = ({ children }: { children: React.ReactNode }) => {
+export const UserProvider = ({children}: { children: React.ReactNode }) => {
     const [userData, setUserData] = useState<Data | null>(null);
 
     return (
-        <UserContext.Provider value={{ userData, setUserData }}>
-    {children}
-    </UserContext.Provider>
-);
+        <UserContext.Provider value={{userData, setUserData}}>
+            {children}
+        </UserContext.Provider>
+    );
 };
 
 export const useUserContext = () => useContext(UserContext);

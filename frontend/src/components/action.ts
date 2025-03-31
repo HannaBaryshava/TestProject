@@ -111,3 +111,34 @@ export const handleSubmit = async (
         };
     }
 };
+
+export const fetchUsers = async (): Promise<IResponse<Data[]>> => {
+    try {
+        const response = await fetch('http://localhost:80/api/users', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const responseData = await response.json();
+
+        return {
+            data: responseData.data || [],
+            errors: {},
+            message: responseData.message || ['Users loaded successfully'],
+        };
+
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        return {
+            data: [],
+            errors: { network: 'Failed to fetch users' },
+            message: ['Error loading users'],
+        };
+    }
+};
