@@ -4,6 +4,7 @@ import {useActionState, useEffect} from 'react';
 import FormGroup from './FormGroup';
 import {handleSubmit} from './action.ts';
 import {useNavigate} from "react-router-dom";
+import { useUserContext } from '../context/UserContext';
 
 const commonInput = "mt-1 block w-full p-2 rounded-md border-gray-700 shadow-sm hover:border-transparent text-gray-700 hover:bg-orange-100 focus:outline-none transition duration-300";
 const commonSelect = "mt-1 block w-full  p-2 rounded-md border border-gray-300 shadow-sm bg-white text-gray-700 hover:border-transparent hover:bg-orange-100 focus:outline-none transition duration-300";
@@ -29,6 +30,7 @@ export interface IResponse<T> {
 
 export const UserForm    = () => {  //type!
     const navigate = useNavigate();
+    const { setUserData } = useUserContext();
     const [state, formAction, isPending] = useActionState<IResponse<FormData>, FormData>(handleSubmit, {
         errors: {},
         message: [],
@@ -37,11 +39,14 @@ export const UserForm    = () => {  //type!
 
     useEffect(() => {
         if (state?.navigation) {
+            if (state.navigation.state) {
+                setUserData(state.navigation.state as Data);
+            }
             navigate(state.navigation.path, {
-                state: state.navigation.state
+                state: state.navigation.state,
             });
         }
-    }, [state, navigate]);
+    }, [state, navigate, setUserData]);
 
     return (
         <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-md space-y-2">
@@ -50,7 +55,7 @@ export const UserForm    = () => {  //type!
                 action={formAction}
                 className="space-y-1">
                 <FormGroup
-                    title="Your first and last name:"
+                    title="First and last name"
                     error={state.errors.name}
                 >
                     <input
@@ -74,7 +79,7 @@ export const UserForm    = () => {  //type!
                 </FormGroup>
                 <br/>
                 <FormGroup
-                    title="Country of residence:"
+                    title="Country of residence"
                     error={state.errors.country}
                 >
                     <select
@@ -122,7 +127,7 @@ export const UserForm    = () => {  //type!
                 </FormGroup>
                 <br/>
                 <FormGroup
-                    title="Gender"
+                    title="Status"
                     error={state.errors.status}
                 >
                     <select

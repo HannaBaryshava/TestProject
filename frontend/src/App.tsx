@@ -4,9 +4,11 @@ import UserForm from './components/UserForm';
 import UserResult from './components/UserResult';
 import Navigation from './components/Navigation';
 import './App.css';
+import { UserProvider } from './context/UserContext';
 
 function App() {
     return (
+        <UserProvider>
         <Router>
             <Navigation />
             <Routes>
@@ -15,6 +17,7 @@ function App() {
                 <Route path="/result" element={<UserResult />} />
             </Routes>
         </Router>
+        </UserProvider>
     );
 }
 
