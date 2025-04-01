@@ -1,16 +1,12 @@
 // DataTable.tsx
-// import * as React from 'react';
 import { Data } from './UserForm.tsx';
-import { useUserContext } from '../context/UserContext';
-import {useActionState, useEffect, useState} from "react";
-import {handleSubmit} from "./action.ts";
-import {IResponse} from "./UserForm.tsx";
+import {useEffect, useState} from "react";
 
 const tableStyles = {
     container: 'overflow-x-auto rounded-lg border border-gray-200 shadow-sm',
     table: 'min-w-full divide-y divide-gray-200',
     headerRow: 'bg-gray-50',
-    headerCell: 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider',
+    headerCell: 'px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider',
     bodyRow: 'hover:bg-gray-50',
     bodyCell: 'px-6 py-4 whitespace-nowrap text-sm text-gray-500',
     nameCell: 'font-medium text-gray-900',

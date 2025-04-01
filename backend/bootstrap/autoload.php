@@ -12,6 +12,8 @@ spl_autoload_register(function ($class) {
     } else {
         error_log("Class $class not found at $file");  // Логируем ошибку загрузки
     }
+
+
 //
 //    $targetFile = __DIR__ . '/../model/database/database.php';
 //    if ($class === 'database\Database' && file_exists($targetFile)) {

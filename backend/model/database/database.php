@@ -129,6 +129,97 @@ class Database
         return $response;
     }
 
+    public function updateUser(array $data): array
+    {
+        $response = [
+            'data' => null,
+            'errors' => [],
+            'message' => ''
+        ];
+
+        if (empty($data['id'])) {
+            $response['errors'] = ['id' => 'User ID is required'];
+            $response['message'] = 'Validation failed';
+            return $response;
+        }
+
+        try {
+            $stmt = $this->pdo->prepare("
+            UPDATE user_table SET
+                name = :name,
+                email = :email,
+                country = :country,
+                city = :city,
+                gender = :gender,
+                status = :status
+            WHERE id = :id
+        ");
+
+            $this->bind($stmt, ':id', $data['id'], \PDO::PARAM_INT);
+            $this->bind($stmt, ':name', $data['name']);
+            $this->bind($stmt, ':email', $data['email']);
+            $this->bind($stmt, ':country', $data['country']);
+            $this->bind($stmt, ':city', $data['city']);
+            $this->bind($stmt, ':gender', $data['gender']);
+            $this->bind($stmt, ':status', $data['status']);
+
+            if ($stmt->execute()) {
+                $selectStmt = $this->pdo->prepare("
+                SELECT * FROM user_table 
+                WHERE id = :id
+            ");
+                $this->bind($selectStmt, ':id', $data['id'], \PDO::PARAM_INT);
+                $selectStmt->execute();
+
+                $response['data'] = $selectStmt->fetch(\PDO::FETCH_ASSOC);
+                $response['message'] = 'User updated successfully';
+            }
+
+        } catch (\PDOException $e) {
+            error_log("Database error: " . $e->getMessage());
+            $response['errors'] = ['database' => 'Update operation failed'];
+        }
+
+        return $response;
+    }
+
+    public function deleteUser(int $id): array
+    {
+        $response = [
+            'data' => null,
+            'errors' => [],
+            'message' => ''
+        ];
+
+        try {
+            $checkStmt = $this->pdo->prepare("SELECT id FROM user_table WHERE id = :id");
+            $this->bind($checkStmt, ':id', $id, \PDO::PARAM_INT);
+            $checkStmt->execute();
+
+            if (!$checkStmt->fetch()) {
+                $response['errors'] = ['not_found' => 'User not found'];
+                $response['message'] = 'Deletion failed';
+                return $response;
+            }
+
+            $deleteStmt = $this->pdo->prepare("DELETE FROM user_table WHERE id = :id");
+            $this->bind($deleteStmt, ':id', $id, \PDO::PARAM_INT);
+
+            if ($deleteStmt->execute()) {
+                $response['message'] = 'User deleted successfully';
+                if ($deleteStmt->rowCount() > 0) {
+                    $response['data'] = ['id' => $id];
+                }
+            }
+
+        } catch (\PDOException $e) {
+            error_log("Database error: " . $e->getMessage());
+            $response['errors'] = ['database' => 'Deletion failed'];
+        }
+
+        return $response;
+    }
+
     public function getConnection(): PDO //skip
     {
         if ($this->connection === null) {

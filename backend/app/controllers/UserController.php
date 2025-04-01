@@ -93,4 +93,88 @@ class UserController
             echo json_encode($response);
         }
     }
+
+    public function update() //айди в теле запроса
+    {
+        header("Content-Type: application/json");
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        $response = $this->db->updateUser($data);
+
+        http_response_code(empty($response['errors']) ? 200 : 400);
+        echo json_encode($response);
+    }
+
+    public function updateById($userId) //айди в url
+    {
+        header("Content-Type: application/json");
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        $data['id'] = (int)$userId;
+
+        $response = $this->db->updateUser($data);
+
+        http_response_code(empty($response['errors']) ? 200 : 400);
+        echo json_encode($response);
+    }
+
+
+//    public function update($userId)
+//    {
+//        header("Content-Type: application/json; charset=UTF-8");
+//        header("Access-Control-Allow-Origin: *");
+//        header("Access-Control-Allow-Methods: PUT, OPTIONS");
+//        header("Access-Control-Allow-Headers: Content-Type, Authorization");
+//
+//        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+//            exit(0);
+//        }
+//
+//        if (!is_numeric($userId) || $userId <= 0) {
+//            http_response_code(400);
+//            echo json_encode([
+//                'data' => null,
+//                'errors' => ['id' => 'Invalid user ID'],
+//                'message' => 'Validation failed'
+//            ]);
+//            return;
+//        }
+//
+//        $data = json_decode(file_get_contents("php://input"), true);
+//
+//        $data['id'] = (int)$userId;
+//
+//        $response = $this->db->updateUser($data);
+//
+//        http_response_code(empty($response['errors']) ? 200 : 400);
+//        echo json_encode($response);
+//    }
+
+    public function deleteById($userId)
+    {
+
+        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+            exit(0);
+        }
+
+        if (!is_numeric($userId) || $userId <= 0) {
+            http_response_code(400);
+            echo json_encode([
+                'data' => null,
+                'errors' => ['id' => 'Invalid user ID'],
+                'message' => 'Validation failed'
+            ]);
+            return;
+        }
+
+        $response = $this->db->deleteUser((int)$userId);
+
+        if (!empty($response['errors'])) {
+            http_response_code(404);
+        } else {
+            http_response_code(200);
+        }
+
+        echo json_encode($response);
+    }
 }
