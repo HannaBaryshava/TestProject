@@ -10,6 +10,16 @@ class UserController
 {
     private $db;
 
+    protected $messages = [
+        'required' => 'The :fieldName: field is required',
+//        'min' => 'The :fieldName: field must be a minimum :rulevalue: characters',
+//        'max' => 'The :fieldName: field must be a maximum :rulevalue: characters',
+//        'email' => 'Not valid email',
+//        'password' => 'Not valid password',
+//        'in' => 'The :fieldName: field must be one of the suggested option',
+//        'default' => ' Validation failed for :fieldName:',
+    ];
+
     public function __construct()
     {
         $this->db = new Database();

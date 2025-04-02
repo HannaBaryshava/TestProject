@@ -4,24 +4,78 @@
 import {IResponse} from './UserForm';
 import {Data} from './UserForm';
 
+interface ValidationRules {
+    required?: boolean,
+    minLength?: number;
+    maxLength?: number;
+    pattern?: RegExp;
+}
 
-// const isValidFormData = (formData: Data, errorMessages: IResponse<FormData>['errors']): IResponse<FormData>['errors'] => {
-//     return (Object.keys(formData) as Array<keyof Data>).reduce<IResponse<FormData>['errors']>((acc, key) => {
-//         if (!formData[key].trim()) {
-//             acc[key] = errorMessages[key];
-//         }
-//         return acc;
-//     }, {});
-// };
-//
-// const errorMessages: IResponse<FormData>['errors'] = {
-//     name: 'Name is required',
-//     email: 'Email is required',
-//     country: 'Country is required',
-//     city: 'City is required',
-//     gender: 'Gender is required',
-//     status: 'Status is required'
-// };
+const errorMessages: IResponse<FormData>['errors'] = {
+    name: 'Name is required',
+    email: 'Email is required',
+    country: 'Country is required',
+    city: 'City is required',
+    gender: 'Gender is required',
+    status: 'Status is required'
+};
+
+const validationRules: Record<keyof Data, ValidationRules> = {
+    id: {},
+    name: {
+        required: true,
+        minLength: 2,
+        maxLength: 50,
+        pattern: /^[a-zA-Zа-яА-Я\s'-]+$/,
+    },
+    email: {
+        required: true,
+        minLength: 5,
+        maxLength: 100,
+        pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    },
+    country: { },
+    city: { minLength: 2, maxLength: 50 },
+    gender: {},
+    status: {}
+};
+
+const isValidFormData = (formData: { [key: string]: string }, errorMessages: IResponse<FormData>['errors']): IResponse<FormData>['errors'] => {
+    return (Object.keys(formData) as Array<keyof Data>).reduce<IResponse<FormData>['errors']>((acc, key) => {
+        // if (!formData[key].trim()) {
+        //     acc[key] = errorMessages[key];
+        // }
+        // return acc;
+
+        const value = formData[key].trim();
+        const rules = validationRules[key];
+        const fieldName = key.charAt(0).toUpperCase() + key.slice(1);
+
+        if (!value) {
+            acc[key] = errorMessages[key];
+            // acc[key] = `${fieldName} is required`;
+            return acc;
+        }
+
+        if (rules.minLength && value.length < rules.minLength) {
+            acc[key] = `${fieldName} must be a minimum ${rules.minLength} chars`;
+            return acc;
+        }
+
+        if (rules.maxLength && value.length > rules.maxLength) {
+            acc[key] = `${fieldName} must be a maximum  ${rules.maxLength} chars`;
+            return acc;
+        }
+
+        if (rules.pattern && !rules.pattern.test(value)) {
+            acc[key] = `${fieldName} has invalid format`;
+            return acc;
+        }
+
+        return acc;
+
+    }, {});
+};
 
 
 export const handleSubmit = async (
@@ -31,7 +85,6 @@ export const handleSubmit = async (
         message: IResponse<FormData>['message']
     },
     formData: FormData,
-    // navigate: Function,
 ): Promise<IResponse<FormData>> => {
     console.log(prevState);
 
@@ -48,14 +101,14 @@ export const handleSubmit = async (
         data: {} as FormData,
     };
 
-    const validationErrors = {}; //isValidFormData(formData, errorMessages);
+    const validationErrors = isValidFormData(body, errorMessages);
     // const navigate = useNavigate();
 
-    // if (Object.keys(validationErrors).length > 0) {
-    //     result.errors = validationErrors;
-    //     console.log("Result:", result);
-    //     return result;
-    // }
+    if (Object.keys(validationErrors).length > 0) {
+        result.errors = validationErrors;
+        console.log("Result:", result);
+        return result;
+    }
 
     try {
         const response = await fetch('http://localhost:80/api/users/create', {

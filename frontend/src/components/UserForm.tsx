@@ -80,7 +80,7 @@ export const UserForm    = () => {  //type!
                     error={state.errors.email}
                 >
                     <input
-                        type="email"
+                        type="email" //text?
                         name="email"
                         placeholder="Enter email"
                         className={commonInput}
@@ -93,7 +93,6 @@ export const UserForm    = () => {  //type!
                 >
                     <select
                         name="country"
-                        required
                         className={commonSelect}
                     >
                         <option value="" disabled>
@@ -112,7 +111,6 @@ export const UserForm    = () => {  //type!
                     <input
                         type="text"
                         name="city"
-                        required
                         placeholder="Enter city"
                         className={commonInput}
                     />
@@ -124,7 +122,6 @@ export const UserForm    = () => {  //type!
                 >
                     <select
                         name="gender"
-                        required
                         className={commonSelect}
                     >
                         <option value="" disabled>
@@ -141,7 +138,6 @@ export const UserForm    = () => {  //type!
                 >
                     <select
                         name="status"
-                        required
                         className={commonSelect}
                     >
                         <option value="" disabled>
