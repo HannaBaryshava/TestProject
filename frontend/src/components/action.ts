@@ -142,3 +142,39 @@ export const fetchUsers = async (): Promise<IResponse<Data[]>> => {
         };
     }
 };
+
+
+export const handleModalSubmit = async (formData: Data): Promise<IResponse<Data>> => {
+    try {
+        const response = await fetch(`http://localhost:80/api/users/update/${formData.id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            return {
+                data: formData,
+                errors: data.errors || { server: 'Update failed' },
+                message: data.message || ['Update error'],
+            };
+        }
+
+        return {
+            data: data.data,
+            errors: {},
+            message: data.message || ['Update successful'],
+        };
+
+    } catch (error) {
+        return {
+            data: formData,
+            errors: { network: 'Connection error' },
+            message: ['Network error'],
+        };
+    }
+};

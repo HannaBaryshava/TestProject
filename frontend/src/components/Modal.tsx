@@ -1,6 +1,7 @@
 import FormGroup from "./FormGroup.tsx";
-import { Data } from './UserForm.tsx';
-
+import {Data, IResponse} from './UserForm.tsx';
+import { handleModalSubmit } from './action.ts';
+import { useNavigate } from 'react-router-dom';
 import { useUserContext } from '../context/UserContext';
 import { useEffect, useState } from 'react';
 
@@ -14,7 +15,9 @@ interface ModalProps {
     onClose: () => void;
 }
 
-export default function Modal({ onClose }: ModalProps) {
+export default function Modal({ onClose}: ModalProps) {
+    const navigate = useNavigate();
+
     const { userData, setUserData } = useUserContext();
     const [formData, setFormData] = useState<Data>(userData as Data);
 
@@ -31,40 +34,24 @@ export default function Modal({ onClose }: ModalProps) {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        try {
 
-            const userId = userData?.id;
+        console.log(formData);
 
-            const response = await fetch(`http://localhost:80/api/users/update/${userId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
-            });
+        const result: IResponse<Data> = await handleModalSubmit(formData);
 
-            if (response.ok) {
-                const result = await response.json();
-                console.log('User updated successfully:', result);
-                setUserData(formData);
-                onClose();
-            } else {
-                const error = await response.json();
-                console.error('Error updating user:', error);
-                alert('Failed to update user');
-            }
-        } catch (error) {
+        setUserData(result.data);
 
-            console.error('Network error:', error);
-            alert('Failed to update user');
-        }
+        onClose();
+
+        navigate(0);                //skip?
+        //window.location.reload(); //skip
     };
 
     return (
         <div className={modalContainer}>
             <div className={modal}>
                 <h1 className="mb-8 text-black text-2xl font-bold text-center">Edit user information</h1>
-                <form onSubmit={handleSubmit}
+                <form
                     className="space-y-1">
                     <FormGroup
                         title="Full name"
@@ -165,7 +152,7 @@ export default function Modal({ onClose }: ModalProps) {
                     >
                         Cancel
                     </button>
-                        <button
+                        <button onClick={handleSubmit}
                             type="submit"
                             className="text-orange-400 bg-white border border-orange-400 rounded-md px-4 py-2 hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-orange-200 transition duration-300">
                             Save changes
