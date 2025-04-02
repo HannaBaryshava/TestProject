@@ -12,17 +12,76 @@ class UserController
 
     protected $messages = [
         'required' => 'The :fieldName: field is required',
-//        'min' => 'The :fieldName: field must be a minimum :rulevalue: characters',
-//        'max' => 'The :fieldName: field must be a maximum :rulevalue: characters',
-//        'email' => 'Not valid email',
-//        'password' => 'Not valid password',
-//        'in' => 'The :fieldName: field must be one of the suggested option',
-//        'default' => ' Validation failed for :fieldName:',
+        'min' => 'The :fieldName: field must be a minimum :rulevalue: characters',
+        'max' => 'The :fieldName: field must be a maximum :rulevalue: characters',
+        'email' => 'Not valid email',
+        'password' => 'Not valid password',
+        'in' => 'The :fieldName: field must be one of :rulevalue:',
+        'default' => ' Validation failed for :fieldName:',
     ];
 
     public function __construct()
     {
         $this->db = new Database();
+    }
+
+    protected function validate(array $data, array $rules): array
+    {
+        $errors = [];
+
+        foreach ($rules as $field => $fieldRules) {
+            foreach ($fieldRules as $rule) {
+                $value = $data[$field] ?? null;
+                $ruleParts = explode(':', $rule, 2);
+                $ruleName = $ruleParts[0];
+                $ruleValue = $ruleParts[1] ?? null;
+
+                if (!empty($errors[$field]) && in_array($this->messages['required'], $errors[$field])) {
+                    break;
+                }
+
+                switch ($ruleName) {
+                    case 'required':
+                        if (empty($value)) {
+                            $message = str_replace(':fieldName:', $field, $this->messages['required']);
+                            $errors[$field][] = $message;
+                            break 2;
+                        }
+                        break;
+                    case 'email':
+                        if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                            $message = str_replace(':fieldName:', $field, $this->messages['email']);
+                            $errors[$field][] = $message;
+                        }
+                        break;
+                    case 'in':
+                        $allowed = explode(',', $ruleValue);
+                        if (!in_array($value, $allowed)) {
+                            $message = str_replace([':fieldName:', ':rulevalue:'], [$field, implode(', ', $allowed)], $this->messages['in']);
+                            $errors[$field][] = $message;
+                        }
+                        break;
+                    case 'min':
+                        if (strlen($value) < $ruleValue) {
+                            $message = str_replace([':fieldName:', ':rulevalue:'], [$field, $ruleValue], $this->messages['min']);
+                            $errors[$field][] = $message;
+                        }
+                        break;
+                    case 'max':
+                        if (strlen($value) > $ruleValue) {
+                            $message = str_replace([':fieldName:', ':rulevalue:'], [$field, $ruleValue], $this->messages['max']);
+                            $errors[$field][] = $message;
+                        }
+                        break;
+                    default:
+                        $message = str_replace(':fieldName:', $field, $this->messages['default']);
+                        $errors[$field][] = $message;
+                        break;
+                }
+            }
+        }
+
+        return $errors;
     }
 
     public function create()
@@ -50,6 +109,18 @@ class UserController
 //                }
 //            }
 
+            $rules = [
+                'name' => ['required', 'min:5', 'max:50'],
+                'email' => ['required', 'email'],
+                'country' => ['required', 'in:male,female,other'],
+                'city' => ['required'],
+                'gender' => ['required', 'in:male,female,other'],
+                'status' => ['required', 'in:active,inactive'],
+            ];
+
+            $errors = $this->validate($data, $rules);
+
+
             if (empty($errors)) {
                 $response = $this->db->createUser($data);
                 error_log("Response type: " . gettype($response));
@@ -58,7 +129,7 @@ class UserController
                 http_response_code(400);
                 $response = [
                     "data" => (object)[],
-                    "errors" => (object)[],
+                    "errors" => $errors,
                     "message" => ["Validation errors occurred"]
                 ];
             }
