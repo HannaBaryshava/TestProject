@@ -32,6 +32,7 @@ class UserController
         foreach ($rules as $field => $fieldRules) {
             foreach ($fieldRules as $rule) {
                 $value = $data[$field] ?? null;
+                $value = strtolower($value);
                 $ruleParts = explode(':', $rule, 2);
                 $ruleName = $ruleParts[0];
                 $ruleValue = $ruleParts[1] ?? null;
@@ -110,15 +111,17 @@ class UserController
 //            }
 
             $rules = [
-                'name' => ['required', 'min:5', 'max:50'],
+                'name' => ['required', 'min:2', 'max:50'],
                 'email' => ['required', 'email'],
-                'country' => ['required', 'in:male,female,other'],
-                'city' => ['required'],
-                'gender' => ['required', 'in:male,female,other'],
+                'country' => ['required', 'in:usa,poland,belarus'],
+                'city' => ['required', 'min:2', 'max:50'],
+                'gender' => ['required', 'in:male,female'],
                 'status' => ['required', 'in:active,inactive'],
             ];
 
             $errors = $this->validate($data, $rules);
+//            $errors = [];
+
 
 
             if (empty($errors)) {

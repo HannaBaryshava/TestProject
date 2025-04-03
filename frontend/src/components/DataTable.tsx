@@ -2,6 +2,7 @@
 import { Data } from './UserForm.tsx';
 import {useEffect, useState} from "react";
 import { useUserContext } from '../context/UserContext';
+import FormGroup from "./FormGroup.tsx";
 
 const tableStyles = {
     container: 'overflow-x-auto rounded-lg border border-gray-200 shadow-sm',
@@ -16,7 +17,9 @@ const tableStyles = {
     statusInactive: 'bg-red-100 text-red-800',
     actionCell: 'px-6 py-4 whitespace-nowrap text-sm font-medium',
     editButton: 'text-orange-600 hover:text-orange-900 mr-4',
-    deleteButton: 'text-red-600 hover:text-red-900'
+    deleteButton: 'text-red-600 hover:text-red-900',
+    filterInput: "mt-1 block max-w-[300px] p-2 rounded-md border-gray-700 shadow-sm hover:border-transparent text-gray-700 hover:bg-orange-100 focus:outline-none transition duration-300",
+    filterContainer: "mb-2 p-4",
 };
 
 interface DataTableProps {
@@ -28,6 +31,7 @@ export default function DataTable({ onEditClick }: DataTableProps) {
 
     const { setUserData } = useUserContext();
     const [users, setUsers] = useState<Data[]>([]);
+    const [filterText, setfilterText] = useState("");
 
     useEffect(() => {
         fetch('http://localhost:80/api/users')
@@ -56,6 +60,10 @@ export default function DataTable({ onEditClick }: DataTableProps) {
         }
     };
 
+    const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setfilterText(event.target.value)
+    }
+
     const columns = [
         { key: 'name', label: 'Name' },
         { key: 'email', label: 'Email' },
@@ -65,6 +73,15 @@ export default function DataTable({ onEditClick }: DataTableProps) {
         { key: 'status', label: 'Status' },
         { key: 'actions', label: 'Actions' }
     ];
+
+    const filteredValues = users.filter ( users =>
+        users.name.toLowerCase().includes(filterText.toLocaleLowerCase()) ||
+        users.email.toLowerCase().includes(filterText.toLocaleLowerCase()) ||
+        users.country.toLowerCase().includes(filterText.toLocaleLowerCase()) ||
+        users.city.toLowerCase().includes(filterText.toLocaleLowerCase()) ||
+        users.gender.toLowerCase().includes(filterText.toLocaleLowerCase()) ||
+        users.status.toLowerCase().includes(filterText.toLocaleLowerCase())
+    );
 
     const renderStatus = (status: string) => (
         <span className={`${tableStyles.statusBase} ${
@@ -78,6 +95,21 @@ export default function DataTable({ onEditClick }: DataTableProps) {
 
     return (
         <div className={tableStyles.container}>
+            <div className={tableStyles.filterContainer}>
+            <FormGroup
+                title="Enter filter request"
+            >
+                <input
+                    type="text"
+                    name="filter"
+                    placeholder="Enter filter value"
+                    className={tableStyles.filterInput}
+                    value={filterText}
+                    onChange={handleFilterChange}
+                />
+            </FormGroup>
+            </div>
+
             <table className={tableStyles.table}>
                 <thead>
                 <tr className={tableStyles.headerRow}>
@@ -89,7 +121,7 @@ export default function DataTable({ onEditClick }: DataTableProps) {
                 </tr>
                 </thead>
                 <tbody>
-                {users.map((user) => {
+                {filteredValues.map((user) => {
                     const { id, status, ...rest } = user;
                     return (
                         <tr key={id} className={tableStyles.bodyRow}>

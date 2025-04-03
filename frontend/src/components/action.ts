@@ -34,10 +34,14 @@ const validationRules: Record<keyof Data, ValidationRules> = {
         maxLength: 100,
         pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
     },
-    country: { },
-    city: { minLength: 2, maxLength: 50 },
-    gender: {},
-    status: {}
+    country: { required: true },
+    city: {
+        required: true,
+        minLength: 2,
+        maxLength: 50
+    },
+    gender: { required: true},
+    status: {  required: true }
 };
 
 const isValidFormData = (formData: { [key: string]: string }, errorMessages: IResponse<FormData>['errors']): IResponse<FormData>['errors'] => {
@@ -123,7 +127,7 @@ export const handleSubmit = async (
         console.log('Заголовки:', [...response.headers.entries()]);
 
         const responseData = await response.json();
-        console.log("responseData:", responseData);
+        // console.log("responseData:", responseData);
 
         if (response.ok) {
 
@@ -133,9 +137,7 @@ export const handleSubmit = async (
             // return await response.json();
 
             return {
-                data: responseData.data,
-                errors: responseData.errors || {},
-                message: responseData.message || ['Success'],
+                ...responseData,
                 navigation: {
                     path: '/result',
                     state: responseData.data
@@ -143,19 +145,17 @@ export const handleSubmit = async (
             };
 
         } else {
-            const errorData: IResponse<Data> = await response.json();
-            console.error('Server error details:', errorData);
-            alert(`Server error: ${errorData.message?.[0] || 'Unknown error'}`);
+            console.error('Server error details:', responseData);
+            alert(`Server error: ${responseData.message?.[0] || 'Unknown error'}`);
             return {
                 data: {} as FormData,
-                errors: errorData.errors || {},
-                message: errorData.message || ['Error']
+                errors: responseData.errors || {},
+                message: responseData.message || ['Error']
             };
 
         }
     } catch (error) {
         console.error('Error during submission:', error);
-
         alert(`Request failed: Unknown error`);
         return {
             data: {} as FormData,
@@ -180,12 +180,7 @@ export const fetchUsers = async (): Promise<IResponse<Data[]>> => {
 
         const responseData = await response.json();
 
-        return {
-            data: responseData.data || [],
-            errors: {},
-            message: responseData.message || ['Users loaded successfully'],
-        };
-
+        return responseData;
     } catch (error) {
         console.error('Error fetching users:', error);
         return {
