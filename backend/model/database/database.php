@@ -99,7 +99,7 @@ class Database
         return $response;
     }
 
-    public function selectAllUsers(): array
+    public function selectAllUsers(string $sortColumn = null, string $sortOrder = 'asc'): array
     {
         $response = [
             'data' => [],
@@ -108,16 +108,31 @@ class Database
         ];
 
         try {
-            $stmt = $this->pdo->query("
-            SELECT id, name, email, country, city, gender, status 
-            FROM user_table
-        ");
+            $query = "SELECT id, name, email, country, city, gender, status FROM user_table";
+
+            if ($sortColumn !== null) {
+                $allowedColumns = ['id', 'name', 'email', 'country', 'city', 'gender', 'status'];
+                $sortColumn = strtolower($sortColumn);
+
+                if (in_array($sortColumn, $allowedColumns)) {
+
+                    $sortOrder = strtoupper($sortOrder) === 'DESC' ? 'DESC' : 'ASC';
+
+                    $query .= " ORDER BY $sortColumn $sortOrder";
+                } else {
+                    $response['errors'][] = "Invalid sort column: " . htmlspecialchars($sortColumn);
+                    return $response;
+                }
+            }
+
+            $stmt = $this->pdo->query($query);
 
             $users = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
             if ($users) {
                 $response['data'] = $users;
-                $response['message'] = 'Users found';
+                $response['message'] = 'Users found' .($sortColumn !== null ? ' (sorted by ' . $sortColumn . ' ' . $sortOrder . ')' : '');
+
             } else {
                 $response['message'] = 'No users found';
             }

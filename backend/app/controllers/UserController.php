@@ -1,6 +1,7 @@
 <?php
 
 namespace app\controllers;
+
 use app\database\Database;
 
 //require_once '../config/config.php';
@@ -123,7 +124,6 @@ class UserController
 //            $errors = [];
 
 
-
             if (empty($errors)) {
                 $response = $this->db->createUser($data);
                 error_log("Response type: " . gettype($response));
@@ -167,11 +167,16 @@ class UserController
         }
     }
 
-    public function getAllUsers()
+    public function getAllUsers(): void
     {
 
         if ($_SERVER["REQUEST_METHOD"] === "GET") {
-            $response = $this->db->selectAllUsers();
+
+            $sortColumn = $_GET['_sort'] ?? null;
+            $sortOrder = $_GET['_order'] ?? 'asc';
+
+//            $response = $this->db->selectAllUsers();
+            $response = $this->db->selectAllUsers($sortColumn, $sortOrder);
 
             http_response_code(empty($response['errors']) ? 200 : 400);
             echo json_encode($response);
@@ -203,37 +208,6 @@ class UserController
     }
 
 
-//    public function update($userId)
-//    {
-//        header("Content-Type: application/json; charset=UTF-8");
-//        header("Access-Control-Allow-Origin: *");
-//        header("Access-Control-Allow-Methods: PUT, OPTIONS");
-//        header("Access-Control-Allow-Headers: Content-Type, Authorization");
-//
-//        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-//            exit(0);
-//        }
-//
-//        if (!is_numeric($userId) || $userId <= 0) {
-//            http_response_code(400);
-//            echo json_encode([
-//                'data' => null,
-//                'errors' => ['id' => 'Invalid user ID'],
-//                'message' => 'Validation failed'
-//            ]);
-//            return;
-//        }
-//
-//        $data = json_decode(file_get_contents("php://input"), true);
-//
-//        $data['id'] = (int)$userId;
-//
-//        $response = $this->db->updateUser($data);
-//
-//        http_response_code(empty($response['errors']) ? 200 : 400);
-//        echo json_encode($response);
-//    }
-
     public function deleteById($userId)
     {
 
@@ -261,4 +235,6 @@ class UserController
 
         echo json_encode($response);
     }
+
+
 }

@@ -26,18 +26,56 @@ interface DataTableProps {
     onEditClick: () => void;
 }
 
+interface SortingState {
+    column: string;
+    order: 'asc' | 'desc';
+}
+interface HeaderCellProps {
+    columnKey: string;
+    label: string;
+    sorting: SortingState;
+    sortTable: (newSorting: SortingState) => void;
+}
+
+
+const HeaderCell: React.FC<HeaderCellProps>  = ({columnKey, label, sorting, sortTable}) => {
+    const isSortable = columnKey !== 'actions';
+    const isDescSorting = sorting.column === columnKey && sorting.order === "desc";
+    const isAscSorting   = sorting.column === columnKey && sorting.order === "asc";
+    const futureSorterOrder = isDescSorting ? "asc" : "desc";
+
+    return (
+        <th className={tableStyles.headerCell}
+            onClick={() => isSortable && sortTable ({column: columnKey, order: futureSorterOrder})}>
+            {label}
+            {isAscSorting && <span> ▲</span>}
+            {isDescSorting && <span> ▼</span>}
+
+        </th>
+    )
+}
+
+
 
 export default function DataTable({ onEditClick }: DataTableProps) {
 
     const { setUserData } = useUserContext();
     const [users, setUsers] = useState<Data[]>([]);
     const [filterText, setfilterText] = useState("");
+    const [sorting, setSorting ] = useState<SortingState>({column: 'id', order: "asc"});
+
+    const sortTable =(newSorting: SortingState) => {
+        console.log("New sorting:", newSorting);
+        setSorting(newSorting);
+    }
 
     useEffect(() => {
-        fetch('http://localhost:80/api/users')
+        // fetch('http://localhost:80/api/users')
+        fetch(`http://localhost:80/api/users?_sort=${sorting.column}&_order=${sorting.order}`)
             .then(res => res.json())
             .then(data => setUsers(data.data || []));
-    }, []);
+    }, [sorting]);
+
 
     const handleEdit = (user: Data, userId: number) => {
     // const handleEdit = (userId: number) => {
@@ -112,11 +150,13 @@ export default function DataTable({ onEditClick }: DataTableProps) {
 
             <table className={tableStyles.table}>
                 <thead>
-                <tr className={tableStyles.headerRow}>
+                <tr className={tableStyles.headerRow} >
                     {columns.map(({ key, label }) => (
-                        <th key={key} className={tableStyles.headerCell}>
-                            {label}
-                        </th>
+                        <HeaderCell  key = {key}
+                                     columnKey={key}
+                                     label = {label}
+                                     sorting = {sorting}
+                                     sortTable = {sortTable}/>
                     ))}
                 </tr>
                 </thead>
