@@ -4,81 +4,81 @@
 import {IResponse} from './UserForm';
 import {Data} from './UserForm';
 
-interface ValidationRules {
-    required?: boolean,
-    minLength?: number;
-    maxLength?: number;
-    pattern?: RegExp;
+interface ValidationRule {
+    value: any;
+    message: string;
 }
 
-const errorMessages: IResponse<FormData>['errors'] = {
-    name: 'Name is required',
-    email: 'Email is required',
-    country: 'Country is required',
-    city: 'City is required',
-    gender: 'Gender is required',
-    status: 'Status is required'
-};
+interface ValidationRules {
+    required?: ValidationRule;
+    minLength?: ValidationRule;
+    maxLength?: ValidationRule;
+    pattern?: {
+        value: RegExp;
+        message: string;
+    };
+}
 
 const validationRules: Record<keyof Data, ValidationRules> = {
     id: {},
     name: {
-        required: true,
-        minLength: 2,
-        maxLength: 50,
-        pattern: /^[a-zA-Zа-яА-Я\s'-]+$/,
+        required: { value: true, message: "Name is required" },
+        minLength: { value: 2, message: "Name should be at least 2 symbols" },
+        maxLength: { value: 50, message: "Name cannot exceed 50 symbols" },
+        pattern: {
+            value: /^[a-zA-Zа-яА-Я\s'-]+$/,
+            message: "Name can only contain letters and spaces"
+        },
     },
     email: {
-        required: true,
-        minLength: 5,
-        maxLength: 100,
-        pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        required: { value: true, message: "Email is required" },
+        minLength: { value: 5, message: "Email should be at least 5 symbols" },
+        maxLength: { value: 100, message: "Email cannot exceed 100 symbols" },
+        pattern: {
+            value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+            message: "Invalid email format"
+        },
     },
-    country: { required: true },
+    country: {
+        required: { value: true, message: "Country is required" },
+    },
     city: {
-        required: true,
-        minLength: 2,
-        maxLength: 50
+        required: { value: true, message: "Email is required" },
+        minLength: { value: 5, message: "City should be at least 5 symbols" },
+        maxLength: { value: 50, message: "City cannot exceed 100 symbols" },
     },
-    gender: { required: true},
-    status: {  required: true }
+    gender: {
+        required: {value: true, message: "Gender is required"},
+    },
+    status: {   required: {value: true, message: "Status is required"}, }
 };
 
-const isValidFormData = (formData: { [key: string]: string }, errorMessages: IResponse<FormData>['errors']): IResponse<FormData>['errors'] => {
-    return (Object.keys(formData) as Array<keyof Data>).reduce<IResponse<FormData>['errors']>((acc, key) => {
-        // if (!formData[key].trim()) {
-        //     acc[key] = errorMessages[key];
-        // }
-        // return acc;
+const isValidFormData = (formData: { [key: string]: string }): Record<keyof Data, string> => {
+    return (Object.keys(formData) as Array<keyof Data>).reduce((errors, field) => {
 
-        const value = formData[key].trim();
-        const rules = validationRules[key];
-        const fieldName = key.charAt(0).toUpperCase() + key.slice(1);
+        const value: string = formData[field]?.trim() || '';
+        const rules: ValidationRules = validationRules[field];
 
-        if (!value) {
-            acc[key] = errorMessages[key];
-            // acc[key] = `${fieldName} is required`;
-            return acc;
+        if (rules?.required?.value && !value) {
+            return { ...errors, [field]: rules.required.message };
         }
 
-        if (rules.minLength && value.length < rules.minLength) {
-            acc[key] = `${fieldName} must be a minimum ${rules.minLength} chars`;
-            return acc;
+        if (value) {
+            if (rules?.minLength?.value && value.length < rules.minLength.value) {
+                return { ...errors, [field]: rules.minLength.message };
+            }
+
+            if (rules?.maxLength?.value && value.length > rules.maxLength.value) {
+                return { ...errors, [field]: rules.maxLength.message };
+            }
+
+            if (rules?.pattern?.value && !rules.pattern.value.test(value)) {
+                return { ...errors, [field]: rules.pattern.message };
+            }
         }
 
-        if (rules.maxLength && value.length > rules.maxLength) {
-            acc[key] = `${fieldName} must be a maximum  ${rules.maxLength} chars`;
-            return acc;
-        }
-
-        if (rules.pattern && !rules.pattern.test(value)) {
-            acc[key] = `${fieldName} has invalid format`;
-            return acc;
-        }
-
-        return acc;
-
-    }, {});
+        return errors;
+    }, {} as Record<keyof Data, string>);
 };
 
 

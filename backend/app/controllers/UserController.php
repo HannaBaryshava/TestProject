@@ -21,6 +21,15 @@ class UserController
         'default' => ' Validation failed for :fieldName:',
     ];
 
+    protected $rules = [
+        'name' => ['required', 'min:2', 'max:50'],
+        'email' => ['required', 'email'],
+        'country' => ['required', 'in:usa,poland,belarus'],
+        'city' => ['required', 'min:2', 'max:50'],
+        'gender' => ['required', 'in:male,female'],
+        'status' => ['required', 'in:active,inactive'],
+    ];
+
     public function __construct()
     {
         $this->db = new Database();
@@ -104,25 +113,9 @@ class UserController
 
         if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $data = json_decode(file_get_contents("php://input"), true);
-            $requiredFields = ['name', 'email', 'country', 'city', 'gender', 'status'];
-//            foreach ($requiredFields as $field) {
-//                if (empty($data->$field)) {
-//                    $errors[$field] = "Field $field is required";
-//                }
-//            }
 
-            $rules = [
-                'name' => ['required', 'min:2', 'max:50'],
-                'email' => ['required', 'email'],
-                'country' => ['required', 'in:usa,poland,belarus'],
-                'city' => ['required', 'min:2', 'max:50'],
-                'gender' => ['required', 'in:male,female'],
-                'status' => ['required', 'in:active,inactive'],
-            ];
 
-            $errors = $this->validate($data, $rules);
-//            $errors = [];
-
+            $errors = $this->validate($data, $this->rules);
 
             if (empty($errors)) {
                 $response = $this->db->createUser($data);
@@ -136,31 +129,6 @@ class UserController
                     "message" => ["Validation errors occurred"]
                 ];
             }
-
-
-//            if (!empty($data->name) && !empty($data->email) && !empty($data->country) && !empty($data->city) && !empty($data->gender) && !empty($data->status)) {
-//
-//                error_log("Received data: " . print_r($data, true));
-//                $response = [
-//                    "data" => [
-//                        "name" => $data->name,
-//                        "email" => $data->email,
-//                        "country" => $data->country,
-//                        "city" => $data->city,
-//                        "gender" => $data->gender,
-//                        "status" => $data->status
-//                    ],
-//                    "errors" => (object)[],
-//                    "message" => ["User created successfully"]
-//                ];
-//
-//            } else {
-//                $response = [
-//                    "data" => (object)[],
-//                    "errors" => (object)[], //?
-//                    "message" => ["Validation errors occurred"]
-//                ];
-//            }
 
 
             echo json_encode($response);

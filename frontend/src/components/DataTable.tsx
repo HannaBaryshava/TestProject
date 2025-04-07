@@ -24,6 +24,7 @@ const tableStyles = {
 
 interface DataTableProps {
     onEditClick: () => void;
+    onDeleteClick: () => void;
 }
 
 interface SortingState {
@@ -57,7 +58,7 @@ const HeaderCell: React.FC<HeaderCellProps>  = ({columnKey, label, sorting, sort
 
 
 
-export default function DataTable({ onEditClick }: DataTableProps) {
+export default function DataTable({ onEditClick, onDeleteClick }: DataTableProps) {
 
     const { setUserData } = useUserContext();
     const [users, setUsers] = useState<Data[]>([]);
@@ -182,15 +183,18 @@ export default function DataTable({ onEditClick }: DataTableProps) {
                                 <button
                                     onClick={() => {
                                         // handleEdit(id as number);
-                                        handleEdit(user, id as number);
                                         onEditClick();
+                                        handleEdit(user, id as number);
                                     }}
                                     className={tableStyles.editButton}
                                 >
                                     Edit
                                 </button>
                                 <button
-                                    onClick={() => handleDelete(id as number)}
+                                    onClick={() => {
+                                        onDeleteClick();
+                                        handleDelete(id as number);
+                                    }}
                                     className={tableStyles.deleteButton}
                                 >
                                     Delete

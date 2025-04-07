@@ -13,9 +13,11 @@ const commonSelect = "mt-1 block w-full p-2 rounded-md border border-gray-300 sh
 
 interface ModalProps {
     onClose: () => void;
+    mode: 'edit' | 'delete';
+    onConfirmDelete?: () => void;
 }
 
-export default function Modal({ onClose}: ModalProps) {
+export default function Modal({ onClose, mode, onConfirmDelete }: ModalProps) {
     const navigate = useNavigate();
 
     const { userData, setUserData } = useUserContext();
@@ -50,6 +52,8 @@ export default function Modal({ onClose}: ModalProps) {
     return (
         <div className={modalContainer}>
             <div className={modal}>
+                {mode === 'edit' ? (
+                    <>
                 <h1 className="mb-8 text-black text-2xl font-bold text-center">Edit user information</h1>
                 <form
                     className="space-y-1">
@@ -159,6 +163,31 @@ export default function Modal({ onClose}: ModalProps) {
                         </button>
                     </div>
                 </form>
+                    </>
+                ) : (
+                    <>
+                    <h1 className="mb-8 text-black text-2xl font-bold text-center">Confirm Deletion</h1>
+                    <p className="mb-6 text-center">Are you sure you want to delete this user?</p>
+                        <div className="flex justify-center space-x-3">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => {
+                                    onConfirmDelete?.();
+                                    onClose();
+                                }}
+                                className="text-orange-400 bg-white border border-orange-400 rounded-md px-4 py-2 hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-orange-200 transition duration-300"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );
