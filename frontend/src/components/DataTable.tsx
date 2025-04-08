@@ -1,8 +1,11 @@
 // DataTable.tsx
 import { Data } from './UserForm.tsx';
-import {useEffect, useState} from "react";
+import {useEffect, useState, useMemo} from "react";
 import { useUserContext } from '../context/UserContext';
 import FormGroup from "./FormGroup.tsx";
+import Pagination from './Pagination';
+import Modal from './Modal';
+import { StatusLabel } from './StatusLabel';
 
 const tableStyles = {
     container: 'overflow-x-auto rounded-lg border border-gray-200 shadow-sm',
@@ -24,7 +27,7 @@ const tableStyles = {
 
 interface DataTableProps {
     onEditClick: () => void;
-    onDeleteClick: () => void;
+
 }
 
 interface SortingState {
@@ -38,6 +41,15 @@ interface HeaderCellProps {
     sortTable: (newSorting: SortingState) => void;
 }
 
+const columns = [
+    { key: 'name', label: 'Name' },
+    { key: 'email', label: 'Email' },
+    { key: 'country', label: 'Country' },
+    { key: 'city', label: 'City' },
+    { key: 'gender', label: 'Gender' },
+    { key: 'status', label: 'Status' },
+    { key: 'actions', label: 'Actions' }
+];
 
 const HeaderCell: React.FC<HeaderCellProps>  = ({columnKey, label, sorting, sortTable}) => {
     const isSortable = columnKey !== 'actions';
@@ -58,35 +70,43 @@ const HeaderCell: React.FC<HeaderCellProps>  = ({columnKey, label, sorting, sort
 
 
 
-export default function DataTable({ onEditClick, onDeleteClick }: DataTableProps) {
+export default function DataTable({ onEditClick }: DataTableProps) {
 
     const { setUserData } = useUserContext();
     const [users, setUsers] = useState<Data[]>([]);
     const [filterText, setfilterText] = useState("");
     const [sorting, setSorting ] = useState<SortingState>({column: 'id', order: "asc"});
 
-    const sortTable =(newSorting: SortingState) => {
-        console.log("New sorting:", newSorting);
-        setSorting(newSorting);
-    }
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [userIdToDelete, setUserIdToDelete] = useState<number | null>(null);
+
+    const fetchData = async (sortParams: SortingState) => {
+        const response = await fetch(
+            `http://localhost:80/api/users?_sort=${sortParams.column}&_order=${sortParams.order}`
+        );
+        const data = await response.json();
+        setUsers(data.data || []);
+    };
 
     useEffect(() => {
-        // fetch('http://localhost:80/api/users')
-        fetch(`http://localhost:80/api/users?_sort=${sorting.column}&_order=${sorting.order}`)
-            .then(res => res.json())
-            .then(data => setUsers(data.data || []));
-    }, [sorting]);
+        fetchData(sorting);
+    }, []);
 
+    const sortTable = (newSorting: SortingState) => {
+        setSorting(newSorting);
+        fetchData(newSorting);
+    };
 
     const handleEdit = (user: Data, userId: number) => {
-    // const handleEdit = (userId: number) => {
         alert('Edit user with ID:' + userId);
         setUserData(user);
     };
 
     const handleDelete = (userId: number) => {
-        // alert('Delete user with ID:' + userId);
-        if (window.confirm('Are you sure you want to delete user with ID: '+ userId + ' ?')) { //any other way to confirm?
+        // if (window.confirm('Are you sure you want to delete user with ID: '+ userId + ' ?')) { //any other way to confirm?
             fetch(`http://localhost:80/api/users/delete/${userId}`, {
                 method: 'DELETE'
             })
@@ -96,22 +116,17 @@ export default function DataTable({ onEditClick, onDeleteClick }: DataTableProps
                     setUsers(users.filter(user => user.id !== userId));
                 })
                 .catch(error => console.error('Error deleting user:', error));
-        }
+        // }
+    };
+
+    const openDeleteModal = (userId: number) => {
+        setUserIdToDelete(userId);
+        setIsDeleteModalOpen(true);
     };
 
     const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setfilterText(event.target.value)
     }
-
-    const columns = [
-        { key: 'name', label: 'Name' },
-        { key: 'email', label: 'Email' },
-        { key: 'country', label: 'Country' },
-        { key: 'city', label: 'City' },
-        { key: 'gender', label: 'Gender' },
-        { key: 'status', label: 'Status' },
-        { key: 'actions', label: 'Actions' }
-    ];
 
     const filteredValues = users.filter ( users =>
         users.name.toLowerCase().includes(filterText.toLocaleLowerCase()) ||
@@ -122,15 +137,13 @@ export default function DataTable({ onEditClick, onDeleteClick }: DataTableProps
         users.status.toLowerCase().includes(filterText.toLocaleLowerCase())
     );
 
-    const renderStatus = (status: string) => (
-        <span className={`${tableStyles.statusBase} ${
-            status === 'active'
-                ? tableStyles.statusActive
-                : tableStyles.statusInactive
-        }`}>
-            {status}
-        </span>
-    );
+    const paginatedData = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        return filteredValues.slice(startIndex, startIndex + itemsPerPage);
+    }, [filteredValues, currentPage]);
+
+    const totalPages = Math.ceil(filteredValues.length / itemsPerPage);
+
 
     return (
         <div className={tableStyles.container}>
@@ -162,7 +175,7 @@ export default function DataTable({ onEditClick, onDeleteClick }: DataTableProps
                 </tr>
                 </thead>
                 <tbody>
-                {filteredValues.map((user) => {
+                {paginatedData.map((user) => {
                     const { id, status, ...rest } = user;
                     return (
                         <tr key={id} className={tableStyles.bodyRow}>
@@ -177,7 +190,14 @@ export default function DataTable({ onEditClick, onDeleteClick }: DataTableProps
                                 </td>
                             ))}
                             <td className={tableStyles.bodyCell}>
-                                {renderStatus(status)}
+                                <StatusLabel
+                                    status={status}
+                                    styles={{
+                                        statusBase: tableStyles.statusBase,
+                                        statusActive: tableStyles.statusActive,
+                                        statusInactive: tableStyles.statusInactive
+                                    }}
+                                />
                             </td>
                             <td className={tableStyles.actionCell}>
                                 <button
@@ -191,10 +211,7 @@ export default function DataTable({ onEditClick, onDeleteClick }: DataTableProps
                                     Edit
                                 </button>
                                 <button
-                                    onClick={() => {
-                                        onDeleteClick();
-                                        handleDelete(id as number);
-                                    }}
+                                    onClick={() => openDeleteModal(user.id as number)}
                                     className={tableStyles.deleteButton}
                                 >
                                     Delete
@@ -205,6 +222,26 @@ export default function DataTable({ onEditClick, onDeleteClick }: DataTableProps
                 })}
                 </tbody>
             </table>
+            {filteredValues.length > itemsPerPage && (
+                <Pagination
+                    currentPage={currentPage}
+                    lastPage={totalPages}
+                    maxLength={7}
+                    setCurrentPage={setCurrentPage}
+                />
+            )}
+            {isDeleteModalOpen && (
+                <Modal
+                    mode="delete"
+                    onClose={() => setIsDeleteModalOpen(false)}
+                    onConfirmDelete={() => {
+                        if (userIdToDelete) {
+                            handleDelete(userIdToDelete);
+                            setIsDeleteModalOpen(false);
+                        }
+                    }}
+                />
+            )}
         </div>
     );
 }

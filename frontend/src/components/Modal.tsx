@@ -19,7 +19,6 @@ interface ModalProps {
 
 export default function Modal({ onClose, mode, onConfirmDelete }: ModalProps) {
     const navigate = useNavigate();
-
     const { userData, setUserData } = useUserContext();
     const [formData, setFormData] = useState<Data>(userData as Data);
 
