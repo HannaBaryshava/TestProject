@@ -235,6 +235,28 @@ class Database
         return $response;
     }
 
+    public function isEmailUnique(string $email, ?int $excludeUserId = null): bool
+    {
+        try {
+            $query = "SELECT id FROM user_table WHERE email = :email";
+            $params = [':email' => $email];
+
+            if ($excludeUserId !== null) {
+                $query .= " AND id != :exclude_id";
+                $params[':exclude_id'] = $excludeUserId;
+            }
+
+            $stmt = $this->pdo->prepare($query);
+            $stmt->execute($params);
+
+            return $stmt->rowCount() === 0;
+
+        } catch (\PDOException $e) {
+            error_log("Email check failed: " . $e->getMessage());
+            return false;
+        }
+    }
+
     public function getConnection(): PDO //skip
     {
         if ($this->connection === null) {

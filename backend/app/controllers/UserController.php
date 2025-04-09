@@ -19,11 +19,12 @@ class UserController
         'password' => 'Not valid password',
         'in' => 'The :fieldName: field must be one of :rulevalue:',
         'default' => ' Validation failed for :fieldName:',
+        'unique' => 'This email is already in use',
     ];
 
     protected $rules = [
         'name' => ['required', 'min:2', 'max:50'],
-        'email' => ['required', 'email'],
+        'email' => ['required', 'email', 'unique'],
         'country' => ['required', 'in:usa,poland,belarus'],
         'city' => ['required', 'min:2', 'max:50'],
         'gender' => ['required', 'in:male,female'],
@@ -46,6 +47,7 @@ class UserController
                 $ruleParts = explode(':', $rule, 2);
                 $ruleName = $ruleParts[0];
                 $ruleValue = $ruleParts[1] ?? null;
+                $userId = isset($data['id']) ? (int)$data['id'] : null;
 
                 if (!empty($errors[$field]) && in_array($this->messages['required'], $errors[$field])) {
                     break;
@@ -82,6 +84,11 @@ class UserController
                         if (strlen($value) > $ruleValue) {
                             $message = str_replace([':fieldName:', ':rulevalue:'], [$field, $ruleValue], $this->messages['max']);
                             $errors[$field][] = $message;
+                        }
+                        break;
+                    case 'unique':
+                        if (!$this->db->isEmailUnique($value, $userId)) { //?
+                            $errors[$field][] = str_replace(':fieldName:', $field, $this->messages['unique']);
                         }
                         break;
                     default:

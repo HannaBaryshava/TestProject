@@ -105,7 +105,7 @@ export const handleSubmit = async (
         data: {} as FormData,
     };
 
-    const validationErrors = isValidFormData(body, errorMessages);
+    const validationErrors = isValidFormData(body);
     // const navigate = useNavigate();
 
     if (Object.keys(validationErrors).length > 0) {
