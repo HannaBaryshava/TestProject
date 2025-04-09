@@ -1,6 +1,8 @@
 <?php
 namespace system;
 
+//здесь почистить и убрать ненужное
+
 class App
 {
     protected $routes = [];

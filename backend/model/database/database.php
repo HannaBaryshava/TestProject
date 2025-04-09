@@ -18,10 +18,10 @@ class Database
     private ?PDO $dbh = null;
     private ?PDOStatement $stmt = null;
     private ?PDO $connection = null;
-    private string $dsn;
+    private string $dsn; // что не используется, удалить
     private $pdo;
 
-    private string $dbname = 'user_db';
+    private string $dbname = 'user_db'; //если данные эти не будут меняться, то лучше использовать константы
     private string $host = 'localhost';
     private string $username = 'root';
     private string $password = 'passw0rd_mySql';
@@ -47,10 +47,8 @@ class Database
             return $this->pdo;
         } catch (\PDOException $e) {
             error_log("Database connection failed: " . $e->getMessage());
-            die(json_encode([
-                "errors" => ["database" => "Connection error"],
-                "message" => "Service unavailable"
-            ]));
+            throw new \RuntimeException("Service unavailable. Please try again later.", 503); // лучше исползуем RuntimeException вместо die
+
         }
     }
 
@@ -69,12 +67,7 @@ class Database
             VALUES (:name, :email, :country, :city, :gender, :status)
         ");
 
-            $this->bind($stmt, ':name', $data['name']);
-            $this->bind($stmt, ':email', $data['email']);
-            $this->bind($stmt, ':country', $data['country']);
-            $this->bind($stmt, ':city', $data['city']);
-            $this->bind($stmt, ':gender', $data['gender']);
-            $this->bind($stmt, ':status', $data['status']);
+            $this->extracted($stmt, $data);
 
             if ($stmt->execute()) {
                 $response = [
@@ -129,7 +122,7 @@ class Database
 
             $users = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-            if ($users) {
+            if ($users) {   //добавить empty
                 $response['data'] = $users;
                 $response['message'] = 'Users found' .($sortColumn !== null ? ' (sorted by ' . $sortColumn . ' ' . $sortOrder . ')' : '');
 
@@ -171,12 +164,7 @@ class Database
         ");
 
             $this->bind($stmt, ':id', $data['id'], \PDO::PARAM_INT);
-            $this->bind($stmt, ':name', $data['name']);
-            $this->bind($stmt, ':email', $data['email']);
-            $this->bind($stmt, ':country', $data['country']);
-            $this->bind($stmt, ':city', $data['city']);
-            $this->bind($stmt, ':gender', $data['gender']);
-            $this->bind($stmt, ':status', $data['status']);
+            $this->extracted($stmt, $data);
 
             if ($stmt->execute()) {
                 $selectStmt = $this->pdo->prepare("
@@ -257,7 +245,7 @@ class Database
         }
     }
 
-    public function getConnection(): PDO //skip
+    public function getConnection(): PDO //skip   // если методы не используются, удалить
     {
         if ($this->connection === null) {
             throw new \RuntimeException(
@@ -274,7 +262,7 @@ class Database
     public function bind($stmt, $param, $value, $type = null): void
     {
         if (is_null($type)) {
-            switch (true) {
+            switch (true) {   //заменить на match
                 case is_int($value):
                     $type = \PDO::PARAM_INT;
                     break;
@@ -300,7 +288,7 @@ class Database
         return $this->dbh->lastInsertId();
     }
 
-//    public function resultSet()
+//    public function resultSet()                      удалить
 //    {
 //        $this->execute();
 //        return $this->stmt->fetchAll(PDO::FETCH_OBJ);
@@ -314,4 +302,18 @@ class Database
 //    {
 //        return $this->stmt->rowCount();
 //    }
+    /**
+     * @param $stmt
+     * @param array $data
+     * @return void
+     */
+    public function extracted($stmt, array $data): void
+    {
+        $this->bind($stmt, ':name', $data['name']);          //было дублирование кода, поэтому вынес в отдельный метод
+        $this->bind($stmt, ':email', $data['email']);
+        $this->bind($stmt, ':country', $data['country']);
+        $this->bind($stmt, ':city', $data['city']);
+        $this->bind($stmt, ':gender', $data['gender']);
+        $this->bind($stmt, ':status', $data['status']);
+    }
 }

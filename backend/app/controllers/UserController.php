@@ -11,7 +11,7 @@ class UserController
 {
     private $db;
 
-    protected $messages = [
+    protected $messages = [   //нужно добавить тип для переменной, шторм предлагает варианты (ниже я добавил как пример)
         'required' => 'The :fieldName: field is required',
         'min' => 'The :fieldName: field must be a minimum :rulevalue: characters',
         'max' => 'The :fieldName: field must be a maximum :rulevalue: characters',
@@ -22,7 +22,7 @@ class UserController
         'unique' => 'This email is already in use',
     ];
 
-    protected $rules = [
+    protected array $rules = [
         'name' => ['required', 'min:2', 'max:50'],
         'email' => ['required', 'email', 'unique'],
         'country' => ['required', 'in:usa,poland,belarus'],
@@ -36,7 +36,7 @@ class UserController
         $this->db = new Database();
     }
 
-    protected function validate(array $data, array $rules): array
+    protected function validate(array $data, array $rules): array  // этот метод должен быть в отдельном классе, например, ValidationService
     {
         $errors = [];
 
@@ -102,9 +102,12 @@ class UserController
         return $errors;
     }
 
-    public function create()
+    /**
+     * @throws \JsonException
+     */
+    public function create() // добавить возвратный тип для метода. То же самое сделать для других методов
     {
-        $errors = [];
+        $errors = []; // удалить не используемые переменные
         $response = [];
 
         error_log("UserController::create called");
@@ -122,7 +125,7 @@ class UserController
             $data = json_decode(file_get_contents("php://input"), true);
 
 
-            $errors = $this->validate($data, $this->rules);
+            $errors = $this->validate($data, $this->rules); // А почему не валидируем еще информацию в методе update() и updateById($userId) ?
 
             if (empty($errors)) {
                 $response = $this->db->createUser($data);
@@ -138,7 +141,7 @@ class UserController
             }
 
 
-            echo json_encode($response);
+            echo json_encode($response, JSON_THROW_ON_ERROR);  // добавь для json_encode в других частях как здесь
         }
     }
 
@@ -150,7 +153,7 @@ class UserController
             $sortColumn = $_GET['_sort'] ?? null;
             $sortOrder = $_GET['_order'] ?? 'asc';
 
-//            $response = $this->db->selectAllUsers();
+//            $response = $this->db->selectAllUsers();  // удалить что не используется
             $response = $this->db->selectAllUsers($sortColumn, $sortOrder);
 
             http_response_code(empty($response['errors']) ? 200 : 400);
@@ -183,7 +186,7 @@ class UserController
     }
 
 
-    public function deleteById($userId)
+    public function deleteById($userId) //добавить возвратный тип и типизировать аргумент
     {
 
         if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
