@@ -8,21 +8,22 @@ import Modal from './Modal';
 import { StatusLabel } from './StatusLabel';
 
 const tableStyles = {
-    container: 'overflow-x-auto rounded-lg border border-gray-200 shadow-sm',
-    table: 'min-w-full divide-y divide-gray-200',
+    section: "bg-white flex flex-col gap-2.5 p-2 md:p-4 lg:p-6 rounded-lg shadow-md",
+    container: 'min-h-[400px] md:min-h-[500px] lg:min-h-[570px]  overflow-x-hidden md:overflow-x-auto rounded-lg border border-gray-200 shadow-sm',
+    table: 'min-w-full table-fixed divide-y divide-gray-200',
     headerRow: 'bg-gray-50',
-    headerCell: 'px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider',
+    headerCell: 'px-2 md:px-4 lg:px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider',
     bodyRow: 'hover:bg-gray-50',
-    bodyCell: 'px-6 py-4 whitespace-nowrap text-sm text-gray-500',
+    bodyCell: 'p-0.5 md:px-1 lg:px-2 whitespace-nowrap text-sm text-gray-500',
     nameCell: 'font-medium text-gray-900',
-    statusBase: 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full',
+    statusBase: 'px-1 md:px-2 inline-flex text-[0.65rem] md:text-xs leading-5 font-semibold rounded-full',
     statusActive: 'bg-green-100 text-green-800',
     statusInactive: 'bg-red-100 text-red-800',
     actionCell: 'px-6 py-4 whitespace-nowrap text-sm font-medium',
     editButton: 'text-orange-600 hover:text-orange-900 mr-4',
     deleteButton: 'text-red-600 hover:text-red-900',
-    filterInput: "mt-1 block max-w-[300px] p-2 rounded-md border-gray-700 shadow-sm hover:border-transparent text-gray-700 hover:bg-orange-100 focus:outline-none transition duration-300",
-    filterContainer: "mb-2 p-4",
+    filterInput: "mt-1 block max-w-full md:max-w-[260px] lg:max-w-[300px] p-0.5 md:px-1 lg:px-2 text-sm md:text-base focus:outline-none rounded-md shadow-sm text-gray-700 hover:bg-orange-100 transition duration-300",
+    filterContainer: "p-1 md:px-2 lg:px-4",
 };
 
 interface DataTableProps {
@@ -146,22 +147,22 @@ export default function DataTable({ onEditClick }: DataTableProps) {
 
 
     return (
-        <div className={tableStyles.container}>
+        <section className={tableStyles.section}>
             <div className={tableStyles.filterContainer}>
-            <FormGroup
-                title="Enter filter request"
-            >
-                <input
-                    type="text"
-                    name="filter"
-                    placeholder="Enter filter value"
-                    className={tableStyles.filterInput}
-                    value={filterText}
-                    onChange={handleFilterChange}
-                />
-            </FormGroup>
+                <FormGroup
+                    title="Enter filter request"
+                >
+                    <input
+                        type="text"
+                        name="filter"
+                        placeholder="Enter filter value"
+                        className={tableStyles.filterInput}
+                        value={filterText}
+                        onChange={handleFilterChange}
+                    />
+                </FormGroup>
             </div>
-
+        <div className={tableStyles.container}>
             <table className={tableStyles.table}>
                 <thead>
                 <tr className={tableStyles.headerRow} >
@@ -208,13 +209,15 @@ export default function DataTable({ onEditClick }: DataTableProps) {
                                     }}
                                     className={tableStyles.editButton}
                                 >
-                                    Edit
+                                    <span className="md:hidden">✏️</span>
+                                    <span className="hidden md:inline">Edit</span>
                                 </button>
                                 <button
                                     onClick={() => openDeleteModal(user.id as number)}
                                     className={tableStyles.deleteButton}
                                 >
-                                    Delete
+                                    <span className="md:hidden">🗑️</span>
+                                    <span className="hidden md:inline">Delete</span>
                                 </button>
                             </td>
                         </tr>
@@ -222,11 +225,12 @@ export default function DataTable({ onEditClick }: DataTableProps) {
                 })}
                 </tbody>
             </table>
+        </div>
             {filteredValues.length > itemsPerPage && (
                 <Pagination
                     currentPage={currentPage}
                     lastPage={totalPages}
-                    maxLength={7}
+                    maxLength={window.innerWidth < 1024 ? 5 : 7}
                     setCurrentPage={setCurrentPage}
                 />
             )}
@@ -242,6 +246,7 @@ export default function DataTable({ onEditClick }: DataTableProps) {
                     }}
                 />
             )}
-        </div>
+
+        </section>
     );
 }
