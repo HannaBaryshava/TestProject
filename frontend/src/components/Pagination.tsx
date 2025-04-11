@@ -7,7 +7,7 @@ export type Props = {
     setCurrentPage: (page: number) => void;
 };
 
-const pagination = "flex flex-wrap justify-center w-full mt-10";
+const pagination = "flex flex-wrap justify-center w-full";
 
 export default function Pagination({
                                        currentPage,

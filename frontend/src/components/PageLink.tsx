@@ -12,14 +12,15 @@ export default function PageLink({
                                      ...otherProps
                                  }: Props) {
 
-    const baseStyles = 'relative inline-flex border bg-white text-orange-400 text-base font-medium no-underline cursor-pointer px-4 py-2 border-solid border-grey-400 focus:outline-none focus:ring-2 focus:ring-orange-200 transition duration-300';
+    const baseStyles = 'relative inline-flex border bg-white text-orange-400 font-medium no-underline cursor-pointer  px-3 py-1.5 text-sm  md:px-3.5 md:py-2 md:text-base lg:px-4 lg:py-2 border-solid border-grey-400 focus:outline-none focus:ring-2 focus:ring-orange-200 transition duration-300';
     // Состояния
     const hoverFocusStyles = 'hover:bg-orange-50 hover:text-orange-500 focus:bg-orange-50';
-    const activeStyles = 'text-white bg-orange-500 hover:bg-orange-400';
-    const disabledStyles = 'text-gray-400 border-gray-300 pointer-events-none hover:bg-white';
+    const activeStyles = '!text-white !bg-orange-400 hover:bg-orange-400';
+    const disabledStyles = '!text-gray-400 border-gray-300 pointer-events-none hover:bg-white';
 
     // Отступ для не-первого элемента
-    const notFirstStyles = '[&:not(:first-child)]:-ml-px';
+    const notFirstStyles = ' [&:not(:first-child)]:-ml-0.5\n' +
+        '  md:[&:not(:first-child)]:-ml-px';
 
     const pageLinkStyles = [
         baseStyles,

@@ -6,7 +6,7 @@ import { useUserContext } from '../context/UserContext';
 import { useEffect, useState } from 'react';
 
 const modalContainer = "fixed z-[1] space-y-2 p-6 mx-auto w-full h-full flex items-center justify-center bg-[Rgba(0,0,0,0.4)] left-0 top-0";
-const modal = "bg-[white] w-[25em] p-8 rounded-[5px]";
+const modal = "bg-[white] w-[25em] flex flex-col gap-3 md:gap-4  p-4 md:p-6 lg:p-8 rounded-[10px]";
 
 const commonInput = "mt-1 block w-full p-2 rounded-md border-gray-700 shadow-sm hover:border-transparent text-gray-700 hover:bg-orange-100 focus:outline-none transition duration-300";
 const commonSelect = "mt-1 block w-full p-2 rounded-md border border-gray-300 shadow-sm bg-white text-gray-700 hover:border-transparent hover:bg-orange-100 focus:outline-none transition duration-300";
@@ -53,9 +53,9 @@ export default function Modal({ onClose, mode, onConfirmDelete }: ModalProps) {
             <div className={modal}>
                 {mode === 'edit' ? (
                     <>
-                <h1 className="mb-8 text-black text-2xl font-bold text-center">Edit user information</h1>
+                <h1 className="mb-8 text-black text-xl md:text-2xl font-bold text-center">Edit user information</h1>
                 <form
-                    className="space-y-1">
+                    className="flex flex-col gap-1.5">
                     <FormGroup
                         title="Full name"
                         error={undefined}
@@ -85,7 +85,7 @@ export default function Modal({ onClose, mode, onConfirmDelete }: ModalProps) {
                         />
                     </FormGroup>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid md:grid-cols-2 gap-2 md:gap-4">
                         <FormGroup
                             title="Country"
                             error={undefined}
@@ -115,7 +115,7 @@ export default function Modal({ onClose, mode, onConfirmDelete }: ModalProps) {
                         </FormGroup>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid md:grid-cols-2 gap-2 md:gap-4">
                         <FormGroup
                             title="Gender"
                             error={undefined}
@@ -165,8 +165,8 @@ export default function Modal({ onClose, mode, onConfirmDelete }: ModalProps) {
                     </>
                 ) : (
                     <>
-                    <h1 className="mb-8 text-black text-2xl font-bold text-center">Confirm Deletion</h1>
-                    <p className="mb-6 text-center">Are you sure you want to delete this user?</p>
+                    <h1 className="text-black text-xl md:text-2xl font-bold text-center">Confirm Deletion</h1>
+                    <p className=" text-center">Are you sure you want to delete this user?</p>
                         <div className="flex justify-center space-x-3">
                             <button
                                 type="button"
