@@ -44,7 +44,7 @@ export default function Modal({ onClose, mode, onConfirmDelete }: ModalProps) {
 
         onClose();
 
-        navigate(0);                //skip?
+        // navigate(0);                //skip?
         //window.location.reload(); //skip
     };
 

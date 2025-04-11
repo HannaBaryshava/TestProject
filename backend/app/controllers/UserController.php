@@ -9,9 +9,11 @@ require_once __DIR__ . '/../../model/database/database.php';
 
 class UserController
 {
-    private $db;
+    private Database $db;
+    private ValidationService $validator;
 
-    protected $messages = [   //нужно добавить тип для переменной, шторм предлагает варианты (ниже я добавил как пример)
+
+    protected array $messages = [
         'required' => 'The :fieldName: field is required',
         'min' => 'The :fieldName: field must be a minimum :rulevalue: characters',
         'max' => 'The :fieldName: field must be a maximum :rulevalue: characters',
@@ -34,82 +36,14 @@ class UserController
     public function __construct()
     {
         $this->db = new Database();
-    }
-
-    protected function validate(array $data, array $rules): array  // этот метод должен быть в отдельном классе, например, ValidationService
-    {
-        $errors = [];
-
-        foreach ($rules as $field => $fieldRules) {
-            foreach ($fieldRules as $rule) {
-                $value = $data[$field] ?? null;
-                $value = strtolower($value);
-                $ruleParts = explode(':', $rule, 2);
-                $ruleName = $ruleParts[0];
-                $ruleValue = $ruleParts[1] ?? null;
-                $userId = isset($data['id']) ? (int)$data['id'] : null;
-
-                if (!empty($errors[$field]) && in_array($this->messages['required'], $errors[$field])) {
-                    break;
-                }
-
-                switch ($ruleName) {
-                    case 'required':
-                        if (empty($value)) {
-                            $message = str_replace(':fieldName:', $field, $this->messages['required']);
-                            $errors[$field][] = $message;
-                            break 2;
-                        }
-                        break;
-                    case 'email':
-                        if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
-                            $message = str_replace(':fieldName:', $field, $this->messages['email']);
-                            $errors[$field][] = $message;
-                        }
-                        break;
-                    case 'in':
-                        $allowed = explode(',', $ruleValue);
-                        if (!in_array($value, $allowed)) {
-                            $message = str_replace([':fieldName:', ':rulevalue:'], [$field, implode(', ', $allowed)], $this->messages['in']);
-                            $errors[$field][] = $message;
-                        }
-                        break;
-                    case 'min':
-                        if (strlen($value) < $ruleValue) {
-                            $message = str_replace([':fieldName:', ':rulevalue:'], [$field, $ruleValue], $this->messages['min']);
-                            $errors[$field][] = $message;
-                        }
-                        break;
-                    case 'max':
-                        if (strlen($value) > $ruleValue) {
-                            $message = str_replace([':fieldName:', ':rulevalue:'], [$field, $ruleValue], $this->messages['max']);
-                            $errors[$field][] = $message;
-                        }
-                        break;
-                    case 'unique':
-                        if (!$this->db->isEmailUnique($value, $userId)) { //?
-                            $errors[$field][] = str_replace(':fieldName:', $field, $this->messages['unique']);
-                        }
-                        break;
-                    default:
-                        $message = str_replace(':fieldName:', $field, $this->messages['default']);
-                        $errors[$field][] = $message;
-                        break;
-                }
-            }
-        }
-
-        return $errors;
+        $this->validator = new ValidationService();
     }
 
     /**
      * @throws \JsonException
      */
-    public function create() // добавить возвратный тип для метода. То же самое сделать для других методов
+    public function create(): void
     {
-        $errors = []; // удалить не используемые переменные
-        $response = [];
-
         error_log("UserController::create called");
         header("Access-Control-Allow-Origin: *");
         header("Content-Type: application/json; charset=UTF-8");
@@ -121,11 +55,17 @@ class UserController
             exit(0);
         }
 
+
         if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $data = json_decode(file_get_contents("php://input"), true);
 
 
-            $errors = $this->validate($data, $this->rules); // А почему не валидируем еще информацию в методе update() и updateById($userId) ?
+            $errors = $this->validator->validate(
+                $data,
+                $this->rules,
+                $this->messages,
+                $this->db
+            );
 
             if (empty($errors)) {
                 $response = $this->db->createUser($data);
@@ -136,15 +76,17 @@ class UserController
                 $response = [
                     "data" => (object)[],
                     "errors" => $errors,
-                    "message" => ["Validation errors occurred"]
+                    "message" => ["Validation errors while creating"]
                 ];
             }
 
-
-            echo json_encode($response, JSON_THROW_ON_ERROR);  // добавь для json_encode в других частях как здесь
+            echo json_encode($response, JSON_THROW_ON_ERROR);  // добавь для json_encode в других частях как здесь? везде дбавить try/catch
         }
     }
 
+    /**
+     * @throws \JsonException
+     */
     public function getAllUsers(): void
     {
 
@@ -153,65 +95,117 @@ class UserController
             $sortColumn = $_GET['_sort'] ?? null;
             $sortOrder = $_GET['_order'] ?? 'asc';
 
-//            $response = $this->db->selectAllUsers();  // удалить что не используется
             $response = $this->db->selectAllUsers($sortColumn, $sortOrder);
 
             http_response_code(empty($response['errors']) ? 200 : 400);
-            echo json_encode($response);
+
+                if (empty($errors)) {
+                    http_response_code(200);
+
+                } else {
+                    http_response_code(400);
+                    $response = [
+                        "data" => (object)[],
+                        "errors" => $errors,
+                        "message" => ["Validation errors while updating"]
+                    ];
+                }
         }
+        echo json_encode($response, JSON_THROW_ON_ERROR);
     }
 
-    public function update() //айди в теле запроса
+    /**
+     * @throws \JsonException
+     */
+    public function update(): void //айди в теле запроса
     {
         header("Content-Type: application/json");
         $data = json_decode(file_get_contents("php://input"), true);
 
-        $response = $this->db->updateUser($data);
+        $errors = $this->validator->validate(
+            $data,
+            $this->rules,
+            $this->messages,
+            $this->db
+        );
 
-        http_response_code(empty($response['errors']) ? 200 : 400);
-        echo json_encode($response);
+        if (empty($errors)) {
+            $response = $this->db->updateUser($data);
+            http_response_code(200);
+        } else {
+            http_response_code(400);
+            $response = [
+                "data" => (object)[],
+                "errors" => $errors,
+                "message" => ["Validation errors while updating"]
+            ];
+        }
+
+        echo json_encode($response, JSON_THROW_ON_ERROR);
     }
 
-    public function updateById($userId) //айди в url
+    /**
+     * @throws \JsonException
+     */
+    public function updateById(int $userId): void //айди в url
     {
         header("Content-Type: application/json");
         $data = json_decode(file_get_contents("php://input"), true);
 
-        $data['id'] = (int)$userId;
+        $data['id'] = $userId;
 
-        $response = $this->db->updateUser($data);
+        $errors = $this->validator->validate(
+            $data,
+            $this->rules,
+            $this->messages,
+            $this->db
+        );
 
-        http_response_code(empty($response['errors']) ? 200 : 400);
-        echo json_encode($response);
+        if (empty($errors)) {
+            http_response_code(200);
+            $response = $this->db->updateUser($data);
+        } else {
+            http_response_code(400);
+            $response = [
+                "data" => (object)[],
+                "errors" => $errors,
+                "message" => ["Validation errors while updating"]
+            ];
+        }
+
+        echo json_encode($response,JSON_THROW_ON_ERROR);
     }
 
 
-    public function deleteById($userId) //добавить возвратный тип и типизировать аргумент
+    /**
+     * @throws \JsonException
+     */
+    public function deleteById(int $userId): void
     {
 
         if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
             exit(0);
         }
 
-        if (!is_numeric($userId) || $userId <= 0) {
-            http_response_code(400);
-            echo json_encode([
-                'data' => null,
-                'errors' => ['id' => 'Invalid user ID'],
-                'message' => 'Validation failed'
-            ]);
-            return;
-        }
-
-        $response = $this->db->deleteUser((int)$userId);
+        $response = $this->db->deleteUser($userId);
 
         if (!empty($response['errors'])) {
             http_response_code(404);
+            $response = [
+                "data" => (object)[],
+                "errors" => $response['errors'],
+                "message" => ["Failed to delete user"]
+            ];
         } else {
             http_response_code(200);
+            $response = [
+                "data" => (object)[],
+                "errors" => [],
+                "message" => ["User successfully deleted"]
+            ];
         }
 
-        echo json_encode($response);
+        echo json_encode($response, JSON_THROW_ON_ERROR);
     }
 
 

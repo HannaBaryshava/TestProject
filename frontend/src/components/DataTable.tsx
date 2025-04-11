@@ -22,7 +22,7 @@ const tableStyles = {
     actionCell: 'px-6 py-4 whitespace-nowrap text-sm font-medium',
     editButton: 'text-orange-600 hover:text-orange-900 mr-4',
     deleteButton: 'text-red-600 hover:text-red-900',
-    filterInput: "mt-1 block max-w-full md:max-w-[260px] lg:max-w-[300px] p-0.5 md:px-1 lg:px-2 text-sm md:text-base focus:outline-none rounded-md shadow-sm text-gray-700 hover:bg-orange-100 transition duration-300",
+    filterInput: "mt-1 block max-w-full md:max-w-[260px] lg:max-w-[300px] p-0.5 md:p-1 lg:p-2 text-sm md:text-base focus:outline-none rounded-md shadow-sm text-gray-700 hover:bg-orange-100 transition duration-300",
     filterContainer: "p-1 md:px-2 lg:px-4",
 };
 
