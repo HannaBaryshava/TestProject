@@ -15,40 +15,47 @@ use PDOStatement;
 
 class Database
 {
-    private ?PDO $dbh = null;
-    private ?PDOStatement $stmt = null;
-    private ?PDO $connection = null;
-    private string $dsn; // что не используется, удалить
-    private $pdo;
+    private static ?Database $instance = null;
 
-    private string $dbname = 'user_db'; //если данные эти не будут меняться, то лучше использовать константы
-    private string $host = 'localhost';
-    private string $username = 'root';
-    private string $password = 'passw0rd_mySql';
+    private const DB_NAME = 'user_db';
+    private const DB_HOST = 'localhost';
+    private const DB_USERNAME = 'root';
+    private const DB_PASSWORD = 'passw0rd_mySql';
     private array $options = [
         \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
         \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC
     ];
 
-    public function __construct()
+    private ?PDO $dbh = null;
+    private ?PDOStatement $stmt = null;
+    private \PDO $pdo;
+
+    private function __construct()
     {
         $this->connect();
     }
 
-    public function connect()
+    public static function getInstance(): Database
+    {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
+
+    public function connect(): PDO
     {
         try {
             $this->pdo = new \PDO(
-                "mysql:host=$this->host;dbname=$this->dbname;charset=utf8mb4",
-                $this->username,
-                $this->password,
+                "mysql:host=".self::DB_HOST.";dbname=".self::DB_NAME.";charset=utf8mb4",
+               self::DB_USERNAME,
+                self::DB_PASSWORD,
                 $this->options
             );
             return $this->pdo;
         } catch (\PDOException $e) {
             error_log("Database connection failed: " . $e->getMessage());
             throw new \RuntimeException("Service unavailable. Please try again later.", 503); // лучше исползуем RuntimeException вместо die
-
         }
     }
 
@@ -245,16 +252,6 @@ class Database
         }
     }
 
-    public function getConnection(): PDO //skip   // если методы не используются, удалить
-    {
-        if ($this->connection === null) {
-            throw new \RuntimeException(
-                "Database connection not established. Call connect() first."
-            );
-        }
-        return $this->connection;
-    }
-
     public function query($sql): void
     {
         $this->stmt = $this->dbh->prepare($sql);
@@ -262,19 +259,27 @@ class Database
     public function bind($stmt, $param, $value, $type = null): void
     {
         if (is_null($type)) {
-            switch (true) {   //заменить на match
-                case is_int($value):
-                    $type = \PDO::PARAM_INT;
-                    break;
-                case is_bool($value):
-                    $type = \PDO::PARAM_BOOL;
-                    break;
-                case is_null($value):
-                    $type = \PDO::PARAM_NULL;
-                    break;
-                default:
-                    $type = \PDO::PARAM_STR;
-            }
+
+            $type = match (true) {
+                is_int($value) => \PDO::PARAM_INT,
+                is_bool($value) => \PDO::PARAM_BOOL,
+                is_null($value) => \PDO::PARAM_NULL,
+                default =>  \PDO::PARAM_STR,
+            };
+
+//            switch (true) {   //заменить на match
+//                case is_int($value):
+//                    $type = \PDO::PARAM_INT;
+//                    break;
+//                case is_bool($value):
+//                    $type = \PDO::PARAM_BOOL;
+//                    break;
+//                case is_null($value):
+//                    $type = \PDO::PARAM_NULL;
+//                    break;
+//                default:
+//                    $type = \PDO::PARAM_STR;
+//            }
         }
         $stmt->bindValue($param, $value, $type);
     }
@@ -288,20 +293,6 @@ class Database
         return $this->dbh->lastInsertId();
     }
 
-//    public function resultSet()                      удалить
-//    {
-//        $this->execute();
-//        return $this->stmt->fetchAll(PDO::FETCH_OBJ);
-//    }
-//    public function single()
-//    {
-//        $this->execute();
-//        return $this->stmt->fetch(PDO::FETCH_OBJ);
-//    }
-//    public function rowCount()
-//    {
-//        return $this->stmt->rowCount();
-//    }
     /**
      * @param $stmt
      * @param array $data

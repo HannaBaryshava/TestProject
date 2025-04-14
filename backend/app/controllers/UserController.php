@@ -35,7 +35,7 @@ class UserController
 
     public function __construct()
     {
-        $this->db = new Database();
+        $this->db = Database::getInstance();
         $this->validator = new ValidationService();
     }
 

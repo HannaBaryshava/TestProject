@@ -106,11 +106,9 @@ export const handleSubmit = async (
     };
 
     const validationErrors = isValidFormData(body);
-    // const navigate = useNavigate();
 
     if (Object.keys(validationErrors).length > 0) {
         result.errors = validationErrors;
-        console.log("Result:", result);
         return result;
     }
 
@@ -127,14 +125,8 @@ export const handleSubmit = async (
         console.log('Заголовки:', [...response.headers.entries()]);
 
         const responseData = await response.json();
-        // console.log("responseData:", responseData);
 
         if (response.ok) {
-
-            // alert(result.message?.[0] || 'Operation successful');
-            // navigate('/result', {state: result.data || result});
-
-            // return await response.json();
 
             return {
                 ...responseData,
