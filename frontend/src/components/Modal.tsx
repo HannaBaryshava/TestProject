@@ -1,9 +1,9 @@
 import FormGroup from "./FormGroup.tsx";
 import {Data, IResponse} from './UserForm.tsx';
-import { handleModalSubmit } from './action.ts';
-import { useNavigate } from 'react-router-dom';
+import {handleEditSubmit} from './action.ts';
+// import { useNavigate } from 'react-router-dom';
 import { useUserContext } from '../context/UserContext';
-import { useEffect, useState } from 'react';
+import {useActionState, useEffect, useState} from 'react';
 
 const modalContainer = "fixed z-[1] space-y-2 p-6 mx-auto w-full h-full flex items-center justify-center bg-[Rgba(0,0,0,0.4)] left-0 top-0";
 const modal = "bg-[white] w-[25em] flex flex-col gap-3 md:gap-4  p-4 md:p-6 lg:p-8 rounded-[10px]";
@@ -18,35 +18,41 @@ interface ModalProps {
 }
 
 export default function Modal({ onClose, mode, onConfirmDelete }: ModalProps) {
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
     const { userData, setUserData } = useUserContext();
-    const [formData, setFormData] = useState<Data>(userData as Data);
+
+    const [state, formAction, isPending] = useActionState<IResponse<Data>, FormData>(handleEditSubmit, {
+        errors: {},
+        message: [],
+        // data: {} as Data
+        data: userData ? { ...userData } : {} as Data
+    });
+
 
     useEffect(() => {
-        if (userData) {
-            setFormData(userData);
+        if (state.status === 200) {
+            // setFormData(userData);
+            onClose();
+            // onClose();
+
         }
-    }, [userData]);
+    }, [state.status]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-    };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        console.log(formData);
-
-        const result: IResponse<Data> = await handleModalSubmit(formData);
-
-        setUserData(result.data);
-
-        onClose();
-
-        // navigate(0);                //skip?
-        //window.location.reload(); //skip
-    };
+    // const handleSubmit = async (e: React.FormEvent) => {
+    //     e.preventDefault();
+    //
+    //     console.log(formData);
+    //
+    //     // const result: IResponse<Data> = await handleEditSubmit(formData);
+    //
+    //     setUserData(state.data);
+    //
+    //     onClose();
+    //
+    //     // navigate(0);                //skip?
+    //     //window.location.reload(); //skip
+    // };
 
     return (
         <div className={modalContainer}>
@@ -55,18 +61,18 @@ export default function Modal({ onClose, mode, onConfirmDelete }: ModalProps) {
                     <>
                 <h1 className="mb-8 text-black text-xl md:text-2xl font-bold text-center">Edit user information</h1>
                 <form
+                    action={formAction}
                     className="flex flex-col gap-1.5">
                     <FormGroup
                         title="Full name"
-                        error={undefined}
+                        error={state.errors.name}
                     >
                         <input
                             type="text"
                             name="name"
                             placeholder="Enter full name"
                             className={commonInput}
-                            value={formData.name}
-                            onChange={handleChange}
+
 
                         />
                     </FormGroup>
@@ -80,8 +86,7 @@ export default function Modal({ onClose, mode, onConfirmDelete }: ModalProps) {
                             name="email"
                             placeholder="Enter email"
                             className={commonInput}
-                            value={formData.email}
-                            onChange={handleChange}
+
                         />
                     </FormGroup>
 
@@ -90,14 +95,17 @@ export default function Modal({ onClose, mode, onConfirmDelete }: ModalProps) {
                             title="Country"
                             error={undefined}
                         >
-                            <input
-                                type="text"
+                            <select
                                 name="country"
-                                placeholder="Enter country"
-                                className={commonInput}
-                                value={formData.country}
-                                onChange={handleChange}
-                            />
+                                className={commonSelect}
+                            >
+                                <option value="" disabled>
+                                    Select your country
+                                </option>
+                                <option value="usa">USA</option>
+                                <option value="poland">Poland</option>
+                                <option value="belarus">Belarus</option>
+                            </select>
                         </FormGroup>
 
                         <FormGroup
@@ -109,8 +117,7 @@ export default function Modal({ onClose, mode, onConfirmDelete }: ModalProps) {
                                 name="city"
                                 placeholder="Enter city"
                                 className={commonInput}
-                                value={formData.city}
-                                onChange={handleChange}
+
                             />
                         </FormGroup>
                     </div>
@@ -123,12 +130,10 @@ export default function Modal({ onClose, mode, onConfirmDelete }: ModalProps) {
                             <select
                                 name="gender"
                                 className={commonSelect}
-                                value={formData.gender}
-                                onChange={handleChange}
+
                             >
                                 <option value="male">Male</option>
                                 <option value="female">Female</option>
-                                <option value="other">Other</option>
                             </select>
                         </FormGroup>
 
@@ -139,8 +144,8 @@ export default function Modal({ onClose, mode, onConfirmDelete }: ModalProps) {
                             <select
                                 name="status"
                                 className={commonSelect}
-                                value={formData.status}
-                                onChange={handleChange}
+                                // value={formData.status}
+                                // onChange={handleChange}
                             >
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
@@ -155,8 +160,9 @@ export default function Modal({ onClose, mode, onConfirmDelete }: ModalProps) {
                     >
                         Cancel
                     </button>
-                        <button onClick={handleSubmit}
+                        <button
                             type="submit"
+                            disabled={isPending || Object.keys(state.errors).length > 0}
                             className="text-orange-400 bg-white border border-orange-400 rounded-md px-4 py-2 hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-orange-200 transition duration-300">
                             Save changes
                         </button>

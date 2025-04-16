@@ -90,7 +90,9 @@ export const handleSubmit = async (
     },
     formData: FormData,
 ): Promise<IResponse<FormData>> => {
+
     console.log(prevState);
+
 
     const body: { [key: string]: string } = {};
     for (let entry of formData.entries()) {
@@ -183,38 +185,131 @@ export const fetchUsers = async (): Promise<IResponse<Data[]>> => {
     }
 };
 
+export const handleEditSubmit = async (
+    prevState: {
+        errors: IResponse<Data>["errors"],
+        data: IResponse<Data>['data'],
+        message: IResponse<Data>['message']
+    },
+    formData: FormData,
+): Promise<IResponse<Data>> => {
+    console.log("prevState:", prevState);
+    console.log("formData:", formData);
 
-export const handleModalSubmit = async (formData: Data): Promise<IResponse<Data>> => {
+    const userId = prevState.data?.id;
+    console.log("userId:", userId);
+
+    const body: { [key: string]: string } = {};
+
+    if (userId) {
+        body.id = userId.toString();
+    }
+
+    for (let entry of formData.entries()) {
+        console.log(entry);
+        if (entry[0] !== 'id') {
+            body[entry[0]] = entry[1] as string;
+        }
+    }
+    console.log("Body:", body);
+    console.log("Body id:", body.id);
+
+    // const result: IResponse<FormData> = {
+    //     errors: {},
+    //     message: [],
+    //     data: {} as FormData,
+    // };
+
+    // const validationErrors = isValidFormData(body);
+    //
+    // if (Object.keys(validationErrors).length > 0) {
+    //     result.errors = validationErrors;
+    //     return result;
+    // }
+
     try {
-        const response = await fetch(`http://localhost:80/api/users/update/${formData.id}`, {
+        const response = await fetch(`http://localhost:80/api/users/update/${body.id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(formData),
+            // body: JSON.stringify(body),
+            body: JSON.stringify({
+                ...body,
+                id: parseInt(body.id, 10)
+            })
         });
 
-        const data = await response.json();
+        console.log('HTTP статус:', response.status);
+        console.log('Заголовки:', [...response.headers.entries()]);
 
-        if (!response.ok) {
+        const responseData = await response.json();
+
+        if (response.ok) {
+
             return {
-                data: formData,
-                errors: data.errors || { server: 'Update failed' },
-                message: data.message || ['Update error'],
+                ...responseData,
+                status: response.status,
+                navigation: {
+                    path: '/result',
+                    state: responseData.data
+                }
             };
+
+        } else {
+            console.error('Server error details:', responseData);
+            alert(`Server error: ${responseData.message?.[0] || 'Unknown error'}`);
+            return {
+                data: {} as Data,
+                errors: responseData.errors || {},
+                message: responseData.message || ['Error']
+            };
+
         }
-
-        return {
-            data: data.data,
-            errors: {},
-            message: data.message || ['Update successful'],
-        };
-
     } catch (error) {
+        console.error('Error during submission:', error);
+        alert(`Request failed: Unknown error`);
         return {
-            data: formData,
-            errors: { network: 'Connection error' },
-            message: ['Network error'],
+            data: {} as Data,
+            errors: {network: 'Failed to connect'},
+            message: ['Network error']
         };
     }
 };
+
+
+
+// export const handleModalSubmit = async (formData: Data): Promise<IResponse<Data>> => {
+//     try {
+//         const response = await fetch(`http://localhost:80/api/users/update/${formData.id}`, {
+//             method: 'PUT',
+//             headers: {
+//                 'Content-Type': 'application/json',
+//             },
+//             body: JSON.stringify(formData),
+//         });
+//
+//         const data = await response.json();
+//
+//         if (!response.ok) {
+//             return {
+//                 data: formData,
+//                 errors: data.errors || { server: 'Update failed' },
+//                 message: data.message || ['Update error'],
+//             };
+//         }
+//
+//         return {
+//             data: data.data,
+//             errors: {},
+//             message: data.message || ['Update successful'],
+//         };
+//
+//     } catch (error) {
+//         return {
+//             data: formData,
+//             errors: { network: 'Connection error' },
+//             message: ['Network error'],
+//         };
+//     }
+// };

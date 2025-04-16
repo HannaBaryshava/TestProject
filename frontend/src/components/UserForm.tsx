@@ -23,6 +23,7 @@ export interface IResponse<T> {
     data: T;
     errors: Record<string, string>;
     message: string[];
+    status?: number;
     navigation?: {
         path: string;
         state: unknown;
@@ -56,11 +57,11 @@ export const UserForm    = () => {  //type!
     //     }
     // }, [state, navigate, setUserData]);
 
-    // useEffect(() => {
-    //     if (state?.data) {
-    //         navigate('/result');
-    //     }
-    // }, [state, navigate]);
+    useEffect(() => {
+        if (state?.data) {
+            navigate('/result');
+        }
+    }, [state, navigate]);
 
     return (
         <div className="lg:p-6 p-4 max-w-md mx-auto bg-white rounded-xl shadow-md space-y-2">

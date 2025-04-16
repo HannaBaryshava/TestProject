@@ -74,7 +74,7 @@ const HeaderCell: React.FC<HeaderCellProps>  = ({columnKey, label, sorting, sort
 export default function DataTable({ onEditClick }: DataTableProps) {
 
     const { setUserData } = useUserContext();
-    const [users, setUsers] = useState<Data[]>([]);
+    // const [users, setUsers] = useState<Data[]>([]);
     const [filterText, setfilterText] = useState("");
     const [sorting, setSorting ] = useState<SortingState>({column: 'id', order: "asc"});
 
