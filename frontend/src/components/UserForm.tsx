@@ -56,12 +56,12 @@ export const UserForm    = () => {  //type!
     //         navigate('/result');
     //     }
     // }, [state, navigate, setUserData]);
-
-    useEffect(() => {
-        if (state?.data) {
-            navigate('/result');
-        }
-    }, [state, navigate]);
+    //
+    // useEffect(() => {
+    //     if (state?.data) {
+    //         navigate('/result');
+    //     }
+    // }, [state, navigate]);
 
     return (
         <div className="lg:p-6 p-4 max-w-md mx-auto bg-white rounded-xl shadow-md space-y-2">

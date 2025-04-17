@@ -3,9 +3,10 @@
 namespace app\controllers;
 
 use app\database\Database;
+use app\services\ValidationService;
 
 //require_once '../config/config.php';
-require_once __DIR__ . '/../../model/database/database.php';
+require_once __DIR__ . '/../../model/database/Database.php';
 
 class UserController
 {
@@ -80,7 +81,7 @@ class UserController
                 ];
             }
 
-            echo json_encode($response, JSON_THROW_ON_ERROR);  // добавь для json_encode в других частях как здесь? везде дбавить try/catch
+            echo json_encode($response, JSON_THROW_ON_ERROR);
         }
     }
 

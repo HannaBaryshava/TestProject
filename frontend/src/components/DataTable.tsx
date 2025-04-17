@@ -27,8 +27,10 @@ const tableStyles = {
 };
 
 interface DataTableProps {
-    onEditClick: () => void;
-
+    data: Data[];
+    onEditClick: (user: Data) => void;
+    onDataFetched: (data: Data[]) => void;
+    onDelete: (userId: number) => void;
 }
 
 interface SortingState {
@@ -71,7 +73,11 @@ const HeaderCell: React.FC<HeaderCellProps>  = ({columnKey, label, sorting, sort
 
 
 
-export default function DataTable({ onEditClick }: DataTableProps) {
+export default function DataTable({   data,
+                                      onEditClick,
+                                      onDataFetched,
+                                      onDelete
+                                  }: DataTableProps) {
 
     const { setUserData } = useUserContext();
     // const [users, setUsers] = useState<Data[]>([]);
@@ -88,8 +94,9 @@ export default function DataTable({ onEditClick }: DataTableProps) {
         const response = await fetch(
             `http://localhost:80/api/users?_sort=${sortParams.column}&_order=${sortParams.order}`
         );
-        const data = await response.json();
-        setUsers(data.data || []);
+        const result = await response.json();
+        // setUsers(data.data || []);
+        onDataFetched(result.data || []);
     };
 
     useEffect(() => {
@@ -101,8 +108,7 @@ export default function DataTable({ onEditClick }: DataTableProps) {
         fetchData(newSorting);
     };
 
-    const handleEdit = (user: Data, userId: number) => {
-        alert('Edit user with ID:' + userId);
+    const handleEdit = (user: Data) => {
         setUserData(user);
     };
 
@@ -113,8 +119,7 @@ export default function DataTable({ onEditClick }: DataTableProps) {
             })
                 .then(res => res.json())
                 .then(() => {
-
-                    setUsers(users.filter(user => user.id !== userId));
+                    onDelete(userId);
                 })
                 .catch(error => console.error('Error deleting user:', error));
         // }
@@ -129,13 +134,13 @@ export default function DataTable({ onEditClick }: DataTableProps) {
         setfilterText(event.target.value)
     }
 
-    const filteredValues = users.filter ( users =>
-        users.name.toLowerCase().includes(filterText.toLocaleLowerCase()) ||
-        users.email.toLowerCase().includes(filterText.toLocaleLowerCase()) ||
-        users.country.toLowerCase().includes(filterText.toLocaleLowerCase()) ||
-        users.city.toLowerCase().includes(filterText.toLocaleLowerCase()) ||
-        users.gender.toLowerCase().includes(filterText.toLocaleLowerCase()) ||
-        users.status.toLowerCase().includes(filterText.toLocaleLowerCase())
+    const filteredValues = data.filter ( data =>
+        data.name.toLowerCase().includes(filterText.toLocaleLowerCase()) ||
+        data.email.toLowerCase().includes(filterText.toLocaleLowerCase()) ||
+        data.country.toLowerCase().includes(filterText.toLocaleLowerCase()) ||
+        data.city.toLowerCase().includes(filterText.toLocaleLowerCase()) ||
+        data.gender.toLowerCase().includes(filterText.toLocaleLowerCase()) ||
+        data.status.toLowerCase().includes(filterText.toLocaleLowerCase())
     );
 
     const paginatedData = useMemo(() => {
@@ -204,8 +209,8 @@ export default function DataTable({ onEditClick }: DataTableProps) {
                                 <button
                                     onClick={() => {
                                         // handleEdit(id as number);
-                                        onEditClick();
-                                        handleEdit(user, id as number);
+                                        onEditClick(user);
+                                        handleEdit(user);
                                     }}
                                     className={tableStyles.editButton}
                                 >

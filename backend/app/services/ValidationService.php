@@ -1,14 +1,11 @@
 <?php
 
-namespace app\controllers;
+namespace app\services;
 use app\database\Database;
 
-interface ValidatorInterface
-{
-    public function validate(array $data, array $rules, array $messages,  Database $db): array;
-}
+use app\services\interfaces\ValidationInterface;
 
-class ValidationService implements ValidatorInterface
+class ValidationService implements ValidationInterface
 {
     public function validate(
         array $data,

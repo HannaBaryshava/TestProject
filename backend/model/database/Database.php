@@ -55,7 +55,7 @@ class Database
             return $this->pdo;
         } catch (\PDOException $e) {
             error_log("Database connection failed: " . $e->getMessage());
-            throw new \RuntimeException("Service unavailable. Please try again later.", 503); // лучше исползуем RuntimeException вместо die
+            throw new \RuntimeException("Service unavailable. Please try again later.", 503);
         }
     }
 
@@ -129,7 +129,7 @@ class Database
 
             $users = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-            if ($users) {   //добавить empty
+            if (!empty($users)) {
                 $response['data'] = $users;
                 $response['message'] = 'Users found' .($sortColumn !== null ? ' (sorted by ' . $sortColumn . ' ' . $sortOrder . ')' : '');
 
@@ -266,20 +266,6 @@ class Database
                 is_null($value) => \PDO::PARAM_NULL,
                 default =>  \PDO::PARAM_STR,
             };
-
-//            switch (true) {   //заменить на match
-//                case is_int($value):
-//                    $type = \PDO::PARAM_INT;
-//                    break;
-//                case is_bool($value):
-//                    $type = \PDO::PARAM_BOOL;
-//                    break;
-//                case is_null($value):
-//                    $type = \PDO::PARAM_NULL;
-//                    break;
-//                default:
-//                    $type = \PDO::PARAM_STR;
-//            }
         }
         $stmt->bindValue($param, $value, $type);
     }
@@ -300,7 +286,7 @@ class Database
      */
     public function extracted($stmt, array $data): void
     {
-        $this->bind($stmt, ':name', $data['name']);          //было дублирование кода, поэтому вынес в отдельный метод
+        $this->bind($stmt, ':name', $data['name']);
         $this->bind($stmt, ':email', $data['email']);
         $this->bind($stmt, ':country', $data['country']);
         $this->bind($stmt, ':city', $data['city']);
