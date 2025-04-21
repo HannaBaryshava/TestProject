@@ -96,7 +96,12 @@ class UserController
             $sortColumn = $_GET['_sort'] ?? null;
             $sortOrder = $_GET['_order'] ?? 'asc';
 
-            $response = $this->db->selectAllUsers($sortColumn, $sortOrder);
+            $page = isset($_GET['page']) ? max((int)$_GET['page'], 1) : 1;
+            $limit = isset($_GET['limit']) ? max((int)$_GET['limit'], 1) : 10;
+            $offset = ($page - 1) * $limit;
+
+//            $response = $this->db->selectAllUsers($sortColumn, $sortOrder);
+            $response = $this->db->selectAllUsers($sortColumn, $sortOrder, $limit, $offset);
 
             http_response_code(empty($response['errors']) ? 200 : 400);
 

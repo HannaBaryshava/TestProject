@@ -3,13 +3,13 @@ import { Data } from './UserForm.tsx';
 import {useEffect, useState, useMemo} from "react";
 import { useUserContext } from '../context/UserContext';
 import FormGroup from "./FormGroup.tsx";
-import Pagination from './Pagination';
+// import Pagination from './Pagination';
 import Modal from './Modal';
 import { StatusLabel } from './StatusLabel';
 
 const tableStyles = {
     section: "bg-white flex flex-col gap-2.5 p-2 md:p-4 lg:p-6 rounded-lg shadow-md",
-    container: 'min-h-[400px] md:min-h-[500px] lg:min-h-[570px]  overflow-x-hidden md:overflow-x-auto rounded-lg border border-gray-200 shadow-sm',
+    container: ' overflow-y-auto h-[400px] md:h-[500px] lg:h-[550px]  overflow-x-hidden md:overflow-x-auto rounded-lg border border-gray-200 shadow-sm', //h vs min h?
     table: 'min-w-full table-fixed divide-y divide-gray-200',
     headerRow: 'bg-gray-50',
     headerCell: 'px-2 md:px-4 lg:px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider',
@@ -85,7 +85,7 @@ export default function DataTable({   data,
     const [sorting, setSorting ] = useState<SortingState>({column: 'id', order: "asc"});
 
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10;
+    const itemsPerPage = 1000;
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [userIdToDelete, setUserIdToDelete] = useState<number | null>(null);
@@ -148,7 +148,7 @@ export default function DataTable({   data,
         return filteredValues.slice(startIndex, startIndex + itemsPerPage);
     }, [filteredValues, currentPage]);
 
-    const totalPages = Math.ceil(filteredValues.length / itemsPerPage);
+    // const totalPages = Math.ceil(filteredValues.length / itemsPerPage);
 
 
     return (
@@ -167,7 +167,7 @@ export default function DataTable({   data,
                     />
                 </FormGroup>
             </div>
-        <div className={tableStyles.container}>
+        <div id = "scrollableDiv" className={tableStyles.container}>
             <table className={tableStyles.table}>
                 <thead>
                 <tr className={tableStyles.headerRow} >
@@ -231,14 +231,14 @@ export default function DataTable({   data,
                 </tbody>
             </table>
         </div>
-            {filteredValues.length > itemsPerPage && (
-                <Pagination
-                    currentPage={currentPage}
-                    lastPage={totalPages}
-                    maxLength={window.innerWidth < 1024 ? 5 : 7}
-                    setCurrentPage={setCurrentPage}
-                />
-            )}
+            {/*{filteredValues.length > itemsPerPage && (*/}
+            {/*    <Pagination*/}
+            {/*        currentPage={currentPage}*/}
+            {/*        lastPage={totalPages}*/}
+            {/*        maxLength={window.innerWidth < 1024 ? 5 : 7}*/}
+            {/*        setCurrentPage={setCurrentPage} */}
+            {/*    />*/}
+            {/*)}*/}
             {isDeleteModalOpen && (
                 <Modal
                     mode="delete"

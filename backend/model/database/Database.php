@@ -99,7 +99,7 @@ class Database
         return $response;
     }
 
-    public function selectAllUsers(string $sortColumn = null, string $sortOrder = 'asc'): array
+    public function selectAllUsers(string $sortColumn = null, string $sortOrder = 'asc',  $limit = 0, $offset = 0): array
     {
         $response = [
             'data' => [],
@@ -125,7 +125,15 @@ class Database
                 }
             }
 
-            $stmt = $this->pdo->query($query);
+            $query .= " LIMIT :limit OFFSET :offset";
+
+            $stmt = $this->pdo->prepare($query);
+            $stmt->bindValue(':limit', (int)$limit, \PDO::PARAM_INT);
+            $stmt->bindValue(':offset', (int)$offset, \PDO::PARAM_INT);
+
+            $stmt->execute();
+
+//            $stmt = $this->pdo->query($query);
 
             $users = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
