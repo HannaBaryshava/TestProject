@@ -99,7 +99,7 @@ class Database
         return $response;
     }
 
-    public function selectAllUsers(string $sortColumn = null, string $sortOrder = 'asc',  $limit = 0, $offset = 0): array
+    public function selectAllUsers(string $sortColumn = null, string $sortOrder = 'asc',  $limit = 10, $offset = 0): array
     {
         $response = [
             'data' => [],
@@ -210,16 +210,17 @@ class Database
         ];
 
         try {
-            $checkStmt = $this->pdo->prepare("SELECT id FROM user_table WHERE id = :id");
-            $this->bind($checkStmt, ':id', $id, \PDO::PARAM_INT);
-            $checkStmt->execute();
+//            foreach ($ids as $id) {
+                $checkStmt = $this->pdo->prepare("SELECT id FROM user_table WHERE id = :id");
+                $this->bind($checkStmt, ':id', $id, \PDO::PARAM_INT);
+                $checkStmt->execute();
 
-            if (!$checkStmt->fetch()) {
-                $response['errors'] = ['not_found' => 'User not found'];
-                $response['message'] = 'Deletion failed';
-                return $response;
-            }
-
+                if (!$checkStmt->fetch()) {
+                    $response['errors'] = ['not_found' => 'User not found'];
+                    $response['message'] = 'Deletion failed';
+                    return $response;
+                }
+//            }
             $deleteStmt = $this->pdo->prepare("DELETE FROM user_table WHERE id = :id");
             $this->bind($deleteStmt, ':id', $id, \PDO::PARAM_INT);
 

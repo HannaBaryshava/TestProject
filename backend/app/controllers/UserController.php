@@ -186,7 +186,7 @@ class UserController
     /**
      * @throws \JsonException
      */
-    public function deleteById(int $userId): void
+    public function deleteById(int $userId): void   //add logic for arrays
     {
 
         if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -214,5 +214,36 @@ class UserController
         echo json_encode($response, JSON_THROW_ON_ERROR);
     }
 
+    public function deleteMultiple(): void {
+
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        if (isset($input['userIds']) && is_array($input['userIds'])) {
+            $userIds = $input['userIds'];
+
+            foreach ($userIds as $id) {
+                $result = $this->db->deleteUser($id);
+
+                if ($result['message'] === 'User deleted successfully') {
+                    $response['data'][] = ['id' => $id];
+                } else {
+                    $response['errors'][$id] = $result['errors'];
+                }
+            }
+
+            if (empty($response['errors'])) {
+                $response['message'] = 'Users deleted successfully';
+            } else {
+                $response['message'] = 'Some users could not be deleted';
+            }
+
+            echo json_encode($response);
+        } else {
+            echo json_encode([
+                'errors' => ['invalid_data' => 'No valid user IDs provided'],
+                'message' => 'Deletion failed'
+            ]);
+        }
+    }
 
 }

@@ -42,9 +42,14 @@ interface HeaderCellProps {
     label: string;
     sorting: SortingState;
     sortTable: (newSorting: SortingState) => void;
+    isCheckbox?: boolean;
+    onSelectAll?: () => void;
+    selectedUsersSize?: number;
+    totalUsersSize?: number;
 }
 
 const columns = [
+    // { key: 'checkbox', label: 'Select all users' },
     { key: 'name', label: 'Name' },
     { key: 'email', label: 'Email' },
     { key: 'country', label: 'Country' },
@@ -54,7 +59,22 @@ const columns = [
     { key: 'actions', label: 'Actions' }
 ];
 
-const HeaderCell: React.FC<HeaderCellProps>  = ({columnKey, label, sorting, sortTable}) => {
+const HeaderCell: React.FC<HeaderCellProps>  = ({
+        columnKey, label, sorting, sortTable,
+        isCheckbox, onSelectAll, selectedUsersSize, totalUsersSize}) => {
+
+    if (isCheckbox) {
+        return (
+            <th className={tableStyles.headerCell}>
+                <input
+                    type="checkbox"
+                    checked={selectedUsersSize === totalUsersSize}
+                    onChange={onSelectAll}
+                />
+            </th>
+        );
+    }
+
     const isSortable = columnKey !== 'actions';
     const isDescSorting = sorting.column === columnKey && sorting.order === "desc";
     const isAscSorting   = sorting.column === columnKey && sorting.order === "asc";
@@ -113,16 +133,17 @@ export default function DataTable({   data,
     };
 
     const handleDelete = (userId: number) => {
-        // if (window.confirm('Are you sure you want to delete user with ID: '+ userId + ' ?')) { //any other way to confirm?
-            fetch(`http://localhost:80/api/users/delete/${userId}`, {
-                method: 'DELETE'
+        fetch(`http://localhost:80/api/users/delete/${userId}`, {
+                method: 'DELETE',
+                headers: {
+                    "Content-Type": "application/json",
+                }
             })
                 .then(res => res.json())
                 .then(() => {
                     onDelete(userId);
                 })
                 .catch(error => console.error('Error deleting user:', error));
-        // }
     };
 
     const openDeleteModal = (userId: number) => {
@@ -150,6 +171,57 @@ export default function DataTable({   data,
 
     // const totalPages = Math.ceil(filteredValues.length / itemsPerPage);
 
+    //checkbox
+    const [selectedUsers, setSelectedUsers] = useState<Set<number>>(new Set());
+
+    const handleSelectUser = (userId: number) => {
+        setSelectedUsers(prevSelected => {
+            const updatedSelected = new Set(prevSelected);
+            if (updatedSelected.has(userId)) {
+                updatedSelected.delete(userId);
+            } else {
+                updatedSelected.add(userId);
+            }
+            return updatedSelected;
+        });
+    };
+
+    const handleSelectAll = () => {
+        if (selectedUsers.size === data.length) {
+            setSelectedUsers(new Set());
+        } else {
+            setSelectedUsers(new Set(data.filter(user => user.id !== undefined).map(user => user.id as number)));
+
+        }
+    };
+
+    const deleteSelectedUsers = () => {
+        const selectedUserIds = Array.from(selectedUsers);
+        if (selectedUserIds.length === 0) {
+            alert('No users selected for deletion');
+            return;
+        }
+
+        if (window.confirm(`Are you sure you want to delete ${selectedUserIds.length} users?`)) {
+            fetch('http://localhost:80/api/users/delete', {
+                method: 'DELETE',
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ userIds: selectedUserIds })
+            })
+                .then(res => res.json())
+                .then(response => {
+                    if (response.message === 'Users deleted successfully') {
+                        selectedUserIds.forEach(userId => onDelete(userId));
+                    } else {
+                        console.error('Error deleting users:', response.errors);
+                    }
+                })
+                .catch(error => console.error('Error deleting users:', error));
+        }
+    };
+    //
 
     return (
         <section className={tableStyles.section}>
@@ -171,20 +243,41 @@ export default function DataTable({   data,
             <table className={tableStyles.table}>
                 <thead>
                 <tr className={tableStyles.headerRow} >
+
+                    <HeaderCell    //union
+                        isCheckbox={true}
+                        selectedUsersSize={selectedUsers.size}
+                        totalUsersSize={data.length}
+                        onSelectAll={handleSelectAll}
+                        columnKey=""
+                        label=""
+                        sorting={{ column: "", order: "asc" }}  // Заглушка
+                        sortTable={() => {}}  // Заглушка
+                    />
+
                     {columns.map(({ key, label }) => (
                         <HeaderCell  key = {key}
                                      columnKey={key}
                                      label = {label}
                                      sorting = {sorting}
-                                     sortTable = {sortTable}/>
+                                     sortTable = {sortTable}
+                        />
                     ))}
                 </tr>
                 </thead>
                 <tbody>
                 {paginatedData.map((user) => {
                     const { id, status, ...rest } = user;
+                    if (id === undefined) return null;
                     return (
                         <tr key={id} className={tableStyles.bodyRow}>
+                            <td className={tableStyles.bodyCell}>
+                                <input
+                                    type="checkbox"
+                                    checked={selectedUsers.has(id)}
+                                    onChange={() => handleSelectUser(id)}
+                                />
+                            </td>
                             {Object.entries(rest).map(([key, value]) => (
                                 <td
                                     key={key}
@@ -231,6 +324,8 @@ export default function DataTable({   data,
                 </tbody>
             </table>
         </div>
+
+
             {/*{filteredValues.length > itemsPerPage && (*/}
             {/*    <Pagination*/}
             {/*        currentPage={currentPage}*/}
@@ -251,7 +346,13 @@ export default function DataTable({   data,
                     }}
                 />
             )}
-
+            <button
+                className={tableStyles.deleteButton}
+                onClick={deleteSelectedUsers}
+                disabled={selectedUsers.size === 0}>
+                Delete Selected Users
+            </button>
         </section>
+
     );
 }
