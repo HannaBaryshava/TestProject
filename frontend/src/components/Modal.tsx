@@ -16,13 +16,15 @@ interface ModalProps {
     onConfirmDelete?: () => void;
     onEdit?: (updatedData: Data) => void;
     userData?: Data | null;
+    message?: string;
 }
 
 export default function Modal({   onClose,
                                   mode,
                                   onConfirmDelete,
                                   onEdit,
-                                  userData
+                                  userData,
+                                  message
                               }: ModalProps ) {
     const { setUserData } = useUserContext();
 
@@ -164,7 +166,7 @@ export default function Modal({   onClose,
                 ) : (
                     <>
                     <h1 className="text-black text-xl md:text-2xl font-bold text-center">Confirm Deletion</h1>
-                    <p className=" text-center">Are you sure you want to delete this user?</p>
+                    <p className=" text-center">{message}</p>
                         <div className="flex justify-center space-x-3">
                             <button
                                 type="button"

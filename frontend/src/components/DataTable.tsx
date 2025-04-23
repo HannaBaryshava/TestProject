@@ -9,7 +9,7 @@ import { StatusLabel } from './StatusLabel';
 
 const tableStyles = {
     section: "bg-white flex flex-col gap-2.5 p-2 md:p-4 lg:p-6 rounded-lg shadow-md",
-    container: ' overflow-y-auto h-[400px] md:h-[500px] lg:h-[550px]  overflow-x-hidden md:overflow-x-auto rounded-lg border border-gray-200 shadow-sm', //h vs min h?
+    container: ' overflow-y-auto h-[400px] md:h-[500px] lg:h-[550px] md:overflow-x-auto rounded-lg border border-gray-200 shadow-sm', //h vs min h?
     table: 'min-w-full table-fixed divide-y divide-gray-200',
     headerRow: 'bg-gray-50',
     headerCell: 'px-2 md:px-4 lg:px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider',
@@ -108,14 +108,15 @@ export default function DataTable({   data,
     const itemsPerPage = 1000;
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [userIdToDelete, setUserIdToDelete] = useState<number | null>(null);
+    // const [userIdToDelete, setUserIdToDelete] = useState<number | null>(null);
+    const [isMassDelete, setIsMassDelete] = useState(false);
+
 
     const fetchData = async (sortParams: SortingState) => {
         const response = await fetch(
             `http://localhost:80/api/users?_sort=${sortParams.column}&_order=${sortParams.order}`
         );
         const result = await response.json();
-        // setUsers(data.data || []);
         onDataFetched(result.data || []);
     };
 
@@ -132,7 +133,20 @@ export default function DataTable({   data,
         setUserData(user);
     };
 
-    const handleDelete = (userId: number) => {
+    const openDeleteModal = (userId: number) => {  // delete single
+        setSelectedUsers(new Set([userId]));
+        setIsMassDelete(false);
+        setIsDeleteModalOpen(true);
+    };
+
+    const openMassDeleteModal = () => { // delete selected
+        if (selectedUsers.size > 0) {
+            setIsMassDelete(true);
+            setIsDeleteModalOpen(true);
+        }
+    };
+
+    const handleDelete = (userId: number) => {       //move to actions
         fetch(`http://localhost:80/api/users/delete/${userId}`, {
                 method: 'DELETE',
                 headers: {
@@ -146,9 +160,30 @@ export default function DataTable({   data,
                 .catch(error => console.error('Error deleting user:', error));
     };
 
-    const openDeleteModal = (userId: number) => {
-        setUserIdToDelete(userId);
-        setIsDeleteModalOpen(true);
+    const deleteSelectedUsers = () => {                     //move to actions
+        const selectedUserIds = Array.from(selectedUsers);
+        if (selectedUserIds.length === 0) {
+            alert('No users selected for deletion');
+            return;
+        }
+
+        fetch('http://localhost:80/api/users/delete', {
+            method: 'DELETE',
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ userIds: selectedUserIds })
+        })
+            .then(res => res.json())
+            .then(response => {
+                if (response.message === 'Users deleted successfully') {
+                    selectedUserIds.forEach(userId => onDelete(userId));
+                } else {
+                    console.error('Error deleting users:', response.errors);
+                }
+            })
+            .catch(error => console.error('Error deleting users:', error));
+
     };
 
     const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -192,33 +227,6 @@ export default function DataTable({   data,
         } else {
             setSelectedUsers(new Set(data.filter(user => user.id !== undefined).map(user => user.id as number)));
 
-        }
-    };
-
-    const deleteSelectedUsers = () => {
-        const selectedUserIds = Array.from(selectedUsers);
-        if (selectedUserIds.length === 0) {
-            alert('No users selected for deletion');
-            return;
-        }
-
-        if (window.confirm(`Are you sure you want to delete ${selectedUserIds.length} users?`)) {
-            fetch('http://localhost:80/api/users/delete', {
-                method: 'DELETE',
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ userIds: selectedUserIds })
-            })
-                .then(res => res.json())
-                .then(response => {
-                    if (response.message === 'Users deleted successfully') {
-                        selectedUserIds.forEach(userId => onDelete(userId));
-                    } else {
-                        console.error('Error deleting users:', response.errors);
-                    }
-                })
-                .catch(error => console.error('Error deleting users:', error));
         }
     };
     //
@@ -324,34 +332,36 @@ export default function DataTable({   data,
                 </tbody>
             </table>
         </div>
-
-
-            {/*{filteredValues.length > itemsPerPage && (*/}
-            {/*    <Pagination*/}
-            {/*        currentPage={currentPage}*/}
-            {/*        lastPage={totalPages}*/}
-            {/*        maxLength={window.innerWidth < 1024 ? 5 : 7}*/}
-            {/*        setCurrentPage={setCurrentPage} */}
-            {/*    />*/}
-            {/*)}*/}
+            {selectedUsers.size > 1 && (
+            <button
+                className={tableStyles.deleteButton}
+                onClick={openMassDeleteModal}
+                disabled={selectedUsers.size === 0}>
+                Delete Selected Users
+            </button>
+            )}
             {isDeleteModalOpen && (
                 <Modal
                     mode="delete"
                     onClose={() => setIsDeleteModalOpen(false)}
                     onConfirmDelete={() => {
-                        if (userIdToDelete) {
-                            handleDelete(userIdToDelete);
-                            setIsDeleteModalOpen(false);
+                        const idsToDelete = Array.from(selectedUsers);
+                        if (isMassDelete) {
+                            deleteSelectedUsers();
+                        } else {
+                            idsToDelete.forEach(id => handleDelete(id));
                         }
+                        setIsDeleteModalOpen(false);
+                        setSelectedUsers(new Set()); // Очищаем выбор
                     }}
+                    message={
+                        selectedUsers.size === 1
+                            ? `Are you sure you want to delete this user?`   //${Array.from(selectedUsers)[0]} - exact id
+                            : `Are you sure you want to delete ${selectedUsers.size} selected users?`
+                    }
                 />
             )}
-            <button
-                className={tableStyles.deleteButton}
-                onClick={deleteSelectedUsers}
-                disabled={selectedUsers.size === 0}>
-                Delete Selected Users
-            </button>
+
         </section>
 
     );

@@ -231,13 +231,7 @@ class UserController
                 }
             }
 
-            if (empty($response['errors'])) {
-                $response['message'] = 'Users deleted successfully';
-            } else {
-                $response['message'] = 'Some users could not be deleted';
-            }
-
-            echo json_encode($response);
+            echo json_encode($response, JSON_THROW_ON_ERROR);
         } else {
             echo json_encode([
                 'errors' => ['invalid_data' => 'No valid user IDs provided'],
