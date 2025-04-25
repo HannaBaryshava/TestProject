@@ -214,12 +214,15 @@ class UserController
         echo json_encode($response, JSON_THROW_ON_ERROR);
     }
 
-    public function deleteMultiple(): void {
-
+    public function deleteMultiple(): void {                //check response format!
         $input = json_decode(file_get_contents('php://input'), true);
 
         if (isset($input['userIds']) && is_array($input['userIds'])) {
             $userIds = $input['userIds'];
+            $response = [
+                'data' => [],
+                'errors' => [],
+            ];
 
             foreach ($userIds as $id) {
                 $result = $this->db->deleteUser($id);
@@ -231,13 +234,23 @@ class UserController
                 }
             }
 
+            if (!empty($response['errors'])) {
+                http_response_code(404);
+                $response['message'] = ['Failed to delete user'];
+            } else {
+                http_response_code(200);
+                $response['message'] = ['User successfully deleted'];
+            }
+
             echo json_encode($response, JSON_THROW_ON_ERROR);
         } else {
+            http_response_code(400);
             echo json_encode([
                 'errors' => ['invalid_data' => 'No valid user IDs provided'],
                 'message' => 'Deletion failed'
             ]);
         }
     }
+
 
 }

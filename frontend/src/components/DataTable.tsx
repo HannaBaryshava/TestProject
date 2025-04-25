@@ -1,11 +1,12 @@
 // DataTable.tsx
 import { Data } from './UserForm.tsx';
-import {useEffect, useState, useMemo} from "react";
+import {useEffect, useState} from "react";
 import { useUserContext } from '../context/UserContext';
 import FormGroup from "./FormGroup.tsx";
 // import Pagination from './Pagination';
 import Modal from './Modal';
 import { StatusLabel } from './StatusLabel';
+import { fetchData, handleDelete, deleteSelectedUsers } from './action.ts';
 
 const tableStyles = {
     section: "bg-white flex flex-col gap-2.5 p-2 md:p-4 lg:p-6 rounded-lg shadow-md",
@@ -33,7 +34,7 @@ interface DataTableProps {
     onDelete: (userId: number) => void;
 }
 
-interface SortingState {
+export interface SortingState {
     column: string;
     order: 'asc' | 'desc';
 }
@@ -100,33 +101,19 @@ export default function DataTable({   data,
                                   }: DataTableProps) {
 
     const { setUserData } = useUserContext();
-    // const [users, setUsers] = useState<Data[]>([]);
     const [filterText, setfilterText] = useState("");
     const [sorting, setSorting ] = useState<SortingState>({column: 'id', order: "asc"});
 
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 1000;
-
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    // const [userIdToDelete, setUserIdToDelete] = useState<number | null>(null);
     const [isMassDelete, setIsMassDelete] = useState(false);
 
-
-    const fetchData = async (sortParams: SortingState) => {
-        const response = await fetch(
-            `http://localhost:80/api/users?_sort=${sortParams.column}&_order=${sortParams.order}`
-        );
-        const result = await response.json();
-        onDataFetched(result.data || []);
-    };
-
     useEffect(() => {
-        fetchData(sorting);
+        fetchData(sorting, onDataFetched);
     }, []);
 
     const sortTable = (newSorting: SortingState) => {
         setSorting(newSorting);
-        fetchData(newSorting);
+        fetchData(newSorting, onDataFetched);
     };
 
     const handleEdit = (user: Data) => {
@@ -146,46 +133,6 @@ export default function DataTable({   data,
         }
     };
 
-    const handleDelete = (userId: number) => {       //move to actions
-        fetch(`http://localhost:80/api/users/delete/${userId}`, {
-                method: 'DELETE',
-                headers: {
-                    "Content-Type": "application/json",
-                }
-            })
-                .then(res => res.json())
-                .then(() => {
-                    onDelete(userId);
-                })
-                .catch(error => console.error('Error deleting user:', error));
-    };
-
-    const deleteSelectedUsers = () => {                     //move to actions
-        const selectedUserIds = Array.from(selectedUsers);
-        if (selectedUserIds.length === 0) {
-            alert('No users selected for deletion');
-            return;
-        }
-
-        fetch('http://localhost:80/api/users/delete', {
-            method: 'DELETE',
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ userIds: selectedUserIds })
-        })
-            .then(res => res.json())
-            .then(response => {
-                if (response.message === 'Users deleted successfully') {
-                    selectedUserIds.forEach(userId => onDelete(userId));
-                } else {
-                    console.error('Error deleting users:', response.errors);
-                }
-            })
-            .catch(error => console.error('Error deleting users:', error));
-
-    };
-
     const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setfilterText(event.target.value)
     }
@@ -198,13 +145,6 @@ export default function DataTable({   data,
         data.gender.toLowerCase().includes(filterText.toLocaleLowerCase()) ||
         data.status.toLowerCase().includes(filterText.toLocaleLowerCase())
     );
-
-    const paginatedData = useMemo(() => {
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        return filteredValues.slice(startIndex, startIndex + itemsPerPage);
-    }, [filteredValues, currentPage]);
-
-    // const totalPages = Math.ceil(filteredValues.length / itemsPerPage);
 
     //checkbox
     const [selectedUsers, setSelectedUsers] = useState<Set<number>>(new Set());
@@ -274,7 +214,7 @@ export default function DataTable({   data,
                 </tr>
                 </thead>
                 <tbody>
-                {paginatedData.map((user) => {
+                {filteredValues.map((user) => {
                     const { id, status, ...rest } = user;
                     if (id === undefined) return null;
                     return (
@@ -347,9 +287,9 @@ export default function DataTable({   data,
                     onConfirmDelete={() => {
                         const idsToDelete = Array.from(selectedUsers);
                         if (isMassDelete) {
-                            deleteSelectedUsers();
+                            deleteSelectedUsers(selectedUsers, onDelete);
                         } else {
-                            idsToDelete.forEach(id => handleDelete(id));
+                            idsToDelete.forEach(id => handleDelete(id, onDelete));
                         }
                         setIsDeleteModalOpen(false);
                         setSelectedUsers(new Set()); // Очищаем выбор

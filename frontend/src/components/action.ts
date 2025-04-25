@@ -3,6 +3,7 @@
 
 import {IResponse} from './UserForm';
 import {Data} from './UserForm';
+import {SortingState} from './DataTable';
 
 interface ValidationRule {
     value: any;
@@ -275,6 +276,62 @@ export const handleEditSubmit = async (
             message: ['Network error']
         };
     }
+};
+
+export const fetchData = async (sortParams: SortingState, onDataFetched: (data: any) => void) => {  //move to actions
+    const response = await fetch(
+        `http://localhost:80/api/users?_sort=${sortParams.column}&_order=${sortParams.order}`
+    );
+    const result = await response.json();
+    onDataFetched(result.data || []);
+};
+
+
+export const handleDelete = (userId: number, onDelete: (userId: number) => void) => {       //move to actions
+    fetch(`http://localhost:80/api/users/delete/${userId}`, {
+        method: 'DELETE',
+        headers: {
+            "Content-Type": "application/json",
+        }
+    })
+        .then(res => res.json())
+        .then(() => {
+            onDelete(userId);
+        })
+        .catch(error => console.error('Error deleting user:', error));
+};
+
+export const deleteSelectedUsers = (selectedUsers: Set<number>, onDelete: (userId: number) => void) => {                     //move to actions
+    const selectedUserIds = Array.from(selectedUsers);
+
+    if (selectedUserIds.length === 0) {
+        alert('No users selected for deletion');
+        return;
+    }
+
+    fetch('http://localhost:80/api/users/delete', {
+        method: 'DELETE',
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userIds: selectedUserIds })
+    })
+        .then(res => {
+            if (!res.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return res.json();
+        })
+        .then(response => {
+            if (response.errors && Object.keys(response.errors).length > 0) {
+                console.error('Error deleting users:', response.errors);
+            } else {
+                selectedUserIds.forEach(userId => onDelete(userId));
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting users:', error);
+        });
 };
 
 
