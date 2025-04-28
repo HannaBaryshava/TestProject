@@ -1,9 +1,10 @@
-import DataTable from './DataTable';
-import Modal from './Modal';
+import DataTable from '../DataTable.tsx';
+import Modal from '../Modal.tsx';
 import {useState, useEffect} from "react";
 import {Data} from "./UserForm.tsx";
-import {useUserContext} from "../context/UserContext.tsx";
+import {useUserContext} from "../../context/UserContext.tsx";
 import InfiniteScroll from "react-infinite-scroll-component";
+import { fetchUsersData } from '../../api/action.ts';
 
 const Home = () => {
 
@@ -17,39 +18,17 @@ const Home = () => {
     const [page, setPage] = useState(1);
     const limit = 10;
 
+    const [dataSource, setDataSource] = useState<'local' | 'gorest'>('local');
+
+    useEffect(() => {                   //only for async
+        fetchUsersData(page, dataSource, limit, setUsers, setHasMore);
+    }, [page, dataSource]);
+
     useEffect(() => {
-        fetchUsersData(page);
-    }, [page]);
-
-    const fetchUsersData = async (currentPage: number) => { //move to action.ts
-        try {
-            const response = await fetch(`http://localhost:80/api/users?page=${currentPage}&limit=${limit}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const responseData = await response.json();
-            const newUsers = responseData.data;
-
-            setUsers((prev) => {
-                const all = [...prev, ...newUsers];
-                const unique = Array.from(new Map(all.map(user => [user.id, user])).values());
-                return unique;
-            });
-
-            if (newUsers.length < limit) {
-                setHasMore(false);
-            }
-        } catch (err) {
-            console.log('Ошибка при получении пользователей:', err);
-        }
-    };
+        setUsers([]);
+        setPage(1);
+        setHasMore(true);
+    }, [dataSource]);
 
     const loadMore = () => {
         setPage(prev => prev + 1);
@@ -68,6 +47,16 @@ const Home = () => {
         <div>
             {/*<div id = "scrollableDiv"  className='h-[700px] overflow-auto'>*/}
             <hr className="mt-4"/>
+            <div className="mb-4">
+                <select
+                    value={dataSource}
+                    onChange={(e) => setDataSource(e.target.value as 'local' | 'gorest')}
+                    className="..."
+                >
+                    <option value="local">Локальная база данных</option>
+                    <option value="gorest">gorest REST API</option>
+                </select>
+            </div>
             <InfiniteScroll
                 dataLength={users.length}
                 next={loadMore}

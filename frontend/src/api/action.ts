@@ -1,9 +1,11 @@
 // action.ts
 "use server"
 
-import {IResponse} from './UserForm';
-import {Data} from './UserForm';
-import {SortingState} from './DataTable';
+import {IResponse} from '../components/pages/UserForm.tsx';
+import {Data} from '../components/pages/UserForm.tsx';
+import {SortingState} from '../components/DataTable.tsx';
+import { SetStateAction } from 'react';
+
 
 interface ValidationRule {
     value: any;
@@ -334,7 +336,46 @@ export const deleteSelectedUsers = (selectedUsers: Set<number>, onDelete: (userI
         });
 };
 
+export const fetchUsersData = async (currentPage: number,
+                                     source: 'local' | 'gorest',
+                                     limit: number,
+                                     setUsers: (value: SetStateAction<Data[]>) => void,
+                                     setHasMore: (value: SetStateAction<boolean>) => void
+) => { //move to action.ts
+    try {
 
+        const endpoint = source === 'local'
+            ? `http://localhost:80/api/users?page=${currentPage}&limit=${limit}`
+            : `http://localhost:80/api/gorest/users?page=${currentPage}&limit=${limit}`;
+
+        const response = await fetch(endpoint, {
+            method: 'GET',
+            // credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const responseData = await response.json();
+        const newUsers = responseData.data;
+
+        setUsers((prev) => {
+            const all = [...prev, ...newUsers];
+            const unique = Array.from(new Map(all.map(user => [user.id, user])).values());
+            return unique;
+        });
+
+        if (newUsers.length < limit) {
+            setHasMore(false);
+        }
+    } catch (err) {
+        console.log('Ошибка при получении пользователей:', err);
+    }
+};
 
 // export const handleModalSubmit = async (formData: Data): Promise<IResponse<Data>> => {
 //     try {

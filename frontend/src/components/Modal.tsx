@@ -1,6 +1,6 @@
-import FormGroup from "./FormGroup.tsx";
-import {Data, IResponse} from './UserForm.tsx';
-import {handleEditSubmit} from './action.ts';
+import FormGroup from "./ui/FormGroup.tsx";
+import {Data, IResponse} from './pages/UserForm.tsx';
+import {handleEditSubmit} from '../api/action.ts';
 import { useUserContext } from '../context/UserContext';
 import {useActionState, useEffect} from 'react';
 

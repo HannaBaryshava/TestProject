@@ -1,6 +1,6 @@
 // src/context/UserContext.ts
 import {createContext, useContext, useState} from 'react';
-import {Data} from '../components/UserForm.tsx';
+import {Data} from '../components/pages/UserForm.tsx';
 
 type UserContextType = {
     userData: Data | null;

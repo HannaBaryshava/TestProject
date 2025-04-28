@@ -1,5 +1,5 @@
 //useless
-import PageLink from './PageLink';
+import PageLink from './PageLink.tsx';
 
 export type Props = {
     currentPage: number;

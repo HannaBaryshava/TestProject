@@ -1,10 +1,10 @@
 "use client"
 
 import {useActionState, useEffect} from 'react';
-import FormGroup from './FormGroup';
-import {handleSubmit} from './action.ts';
+import FormGroup from '../ui/FormGroup.tsx';
+import {handleSubmit} from '../../api/action.ts';
 import {useNavigate} from "react-router-dom";
-import { useUserContext } from '../context/UserContext';
+import { useUserContext } from '../../context/UserContext.tsx';
 
 const commonInput = "mt-1  w-full p-2 rounded-md border-gray-700 shadow-sm hover:border-transparent text-gray-700 hover:bg-orange-100 focus:outline-none transition duration-300";
 const commonSelect = "mt-1 w-full  p-2 rounded-md border border-gray-300 shadow-sm bg-white text-gray-700 hover:border-transparent hover:bg-orange-100 focus:outline-none transition duration-300";

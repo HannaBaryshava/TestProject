@@ -1,12 +1,12 @@
 // DataTable.tsx
-import { Data } from './UserForm.tsx';
+import { Data } from './pages/UserForm.tsx';
 import {useEffect, useState} from "react";
 import { useUserContext } from '../context/UserContext';
-import FormGroup from "./FormGroup.tsx";
+import FormGroup from "./ui/FormGroup.tsx";
 // import Pagination from './Pagination';
 import Modal from './Modal';
-import { StatusLabel } from './StatusLabel';
-import { fetchData, handleDelete, deleteSelectedUsers } from './action.ts';
+import { StatusLabel } from './ui/StatusLabel.tsx';
+import { fetchData, handleDelete, deleteSelectedUsers } from '../api/action.ts';
 
 const tableStyles = {
     section: "bg-white flex flex-col gap-2.5 p-2 md:p-4 lg:p-6 rounded-lg shadow-md",
@@ -107,6 +107,7 @@ export default function DataTable({   data,
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isMassDelete, setIsMassDelete] = useState(false);
 
+
     useEffect(() => {
         fetchData(sorting, onDataFetched);
     }, []);
@@ -173,6 +174,7 @@ export default function DataTable({   data,
 
     return (
         <section className={tableStyles.section}>
+
             <div className={tableStyles.filterContainer}>
                 <FormGroup
                     title="Enter filter request"

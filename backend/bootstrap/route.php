@@ -7,4 +7,5 @@ return [
     'PUT /api/users/update' => ["app\controllers\UserController", "update"],
     'DELETE /api/users/delete/{id}' => ["app\controllers\UserController", "deleteById"],
     'DELETE /api/users/delete' => ["app\controllers\UserController", "deleteMultiple"],
+    'GET /api/gorest/users' => ["app\controllers\GoRestController", "getGorestUsers"],
 ];
