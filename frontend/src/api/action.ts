@@ -341,7 +341,7 @@ export const fetchUsersData = async (currentPage: number,
                                      limit: number,
                                      setUsers: (value: SetStateAction<Data[]>) => void,
                                      setHasMore: (value: SetStateAction<boolean>) => void
-) => { //move to action.ts
+) => {
     try {
 
         const endpoint = source === 'local'

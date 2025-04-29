@@ -46,7 +46,7 @@ class UserController
     public function create(): void
     {
         error_log("UserController::create called");
-        header("Access-Control-Allow-Origin: *");
+//        header("Access-Control-Allow-Origin: *");
         header("Content-Type: application/json; charset=UTF-8");
 
         header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
@@ -90,16 +90,35 @@ class UserController
      */
     public function getAllUsers(): void
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-            http_response_code(200);
-            exit();
-        }
 
         $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
         header("Access-Control-Allow-Origin: $origin");
         header("Access-Control-Allow-Credentials: true");
         header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
         header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+
+        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+            http_response_code(200);
+            exit();
+        }
+//        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+//        $allowedOrigins = [
+//            'http://localhost:5173',
+//            'http://localhost:5174',
+//        ];
+//
+//        if (in_array($origin, $allowedOrigins)) {
+//            header("Access-Control-Allow-Origin: $origin");
+//            header("Access-Control-Allow-Credentials: true");
+//            header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+//            header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+//        }
+//
+//        // 2. Preflight запрос (OPTIONS) — обрабатываем и выходим
+//        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+//            http_response_code(200);
+//            exit();
+//        }
 
 //        header("Access-Control-Allow-Origin: *");
 //        header("Content-Type: application/json; charset=UTF-8");

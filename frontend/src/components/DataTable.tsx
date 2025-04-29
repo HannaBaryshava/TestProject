@@ -107,7 +107,6 @@ export default function DataTable({   data,
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isMassDelete, setIsMassDelete] = useState(false);
 
-
     useEffect(() => {
         fetchData(sorting, onDataFetched);
     }, []);

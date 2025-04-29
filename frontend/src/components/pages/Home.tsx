@@ -21,10 +21,12 @@ const Home = () => {
     const [dataSource, setDataSource] = useState<'local' | 'gorest'>('local');
 
     useEffect(() => {                   //only for async
+        console.log("fetch")
         fetchUsersData(page, dataSource, limit, setUsers, setHasMore);
     }, [page, dataSource]);
 
     useEffect(() => {
+        console.log("dataSource")
         setUsers([]);
         setPage(1);
         setHasMore(true);

@@ -8,4 +8,8 @@ return [
     'DELETE /api/users/delete/{id}' => ["app\controllers\UserController", "deleteById"],
     'DELETE /api/users/delete' => ["app\controllers\UserController", "deleteMultiple"],
     'GET /api/gorest/users' => ["app\controllers\GoRestController", "getGorestUsers"],
+    'PUT /api/gorest/users/{id}' => ["app\controllers\GoRestController", "updateGorestUsers"],
+    'POST /api/gorest/users' => ['app\controllers\GoRestController', 'createGorestUser'],
+    'PATCH /api/gorest/users/{id}' => ['app\controllers\GoRestController', 'patchGorestUser'],
+    'DELETE /api/gorest/users/{id}' => ['app\controllers\GoRestController', 'deleteGorestUser'],
 ];
