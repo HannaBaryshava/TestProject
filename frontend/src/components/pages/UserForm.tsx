@@ -36,7 +36,7 @@ export const UserForm    = () => {  //type!
     const [state, formAction, isPending] = useActionState<IResponse<FormData>, FormData>(handleSubmit, {
         errors: {},
         message: [],
-        data: {} as FormData
+        data: {} as FormData,
     });
 
     useEffect(() => {

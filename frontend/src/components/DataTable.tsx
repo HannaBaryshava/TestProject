@@ -137,6 +137,7 @@ export default function DataTable({   data,
         setfilterText(event.target.value)
     }
 
+    // console.log("Исходные данные:", JSON.stringify(data, null, 2));
     const filteredValues = data.filter ( data =>
         data.name.toLowerCase().includes(filterText.toLocaleLowerCase()) ||
         data.email.toLowerCase().includes(filterText.toLocaleLowerCase()) ||

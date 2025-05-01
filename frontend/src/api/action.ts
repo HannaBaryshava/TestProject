@@ -162,31 +162,31 @@ export const handleSubmit = async (
     }
 };
 
-export const fetchUsers = async (): Promise<IResponse<Data[]>> => {
-    try {
-        const response = await fetch('http://localhost:80/api/users', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const responseData = await response.json();
-
-        return responseData;
-    } catch (error) {
-        console.error('Error fetching users:', error);
-        return {
-            data: [],
-            errors: { network: 'Failed to fetch users' },
-            message: ['Error loading users'],
-        };
-    }
-};
+// export const fetchUsers = async (): Promise<IResponse<Data[]>> => {
+//     try {
+//         const response = await fetch('http://localhost:80/api/users', {
+//             method: 'GET',
+//             headers: {
+//                 'Content-Type': 'application/json',
+//             },
+//         });
+//
+//         if (!response.ok) {
+//             throw new Error(`HTTP error! status: ${response.status}`);
+//         }
+//
+//         const responseData = await response.json();
+//
+//         return responseData;
+//     } catch (error) {
+//         console.error('Error fetching users:', error);
+//         return {
+//             data: [],
+//             errors: { network: 'Failed to fetch users' },
+//             message: ['Error loading users'],
+//         };
+//     }
+// };
 
 export const handleEditSubmit = async (
     prevState: {
@@ -232,10 +232,12 @@ export const handleEditSubmit = async (
 
     try {
         const response = await fetch(`http://localhost:80/api/users/update/${body.id}`, {
+        // const response = await fetch(` http://localhost/api/gorest/users/${body.id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: 'include',
             // body: JSON.stringify(body),
             body: JSON.stringify({
                 ...body,
@@ -284,21 +286,41 @@ export const fetchData = async (sortParams: SortingState, onDataFetched: (data: 
     const response = await fetch(
         `http://localhost:80/api/users?_sort=${sortParams.column}&_order=${sortParams.order}`
     );
+    // const response = await fetch(
+    //     `http://localhost/api/gorest/users?_sort=${sortParams.column}&_order=${sortParams.order}`
+    // );
     const result = await response.json();
     onDataFetched(result.data || []);
 };
 
 
 export const handleDelete = (userId: number, onDelete: (userId: number) => void) => {       //move to actions
+    // fetch(`http://localhost/api/gorest/users/${userId}`, {
     fetch(`http://localhost:80/api/users/delete/${userId}`, {
         method: 'DELETE',
+        credentials: 'include',
         headers: {
             "Content-Type": "application/json",
         }
     })
-        .then(res => res.json())
-        .then(() => {
-            onDelete(userId);
+        // .then(res => res.json())
+        // .then(() => {
+        //     onDelete(userId);
+        // })
+        .then(res => {
+            // Обрабатываем успешные ответы без тела
+            if (res.status === 204) {
+                onDelete(userId);
+                return;
+            }
+
+            // Парсим JSON только для ответов с телом
+            return res.json().then(data => {
+                if (!res.ok) {
+                    throw new Error(data.message?.join(', ') || 'Ошибка удаления');
+                }
+                onDelete(userId);
+            });
         })
         .catch(error => console.error('Error deleting user:', error));
 };

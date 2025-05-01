@@ -12,13 +12,13 @@ const Home = () => {
     const [modalMode, setModalMode] = useState<'edit' | 'delete'>('edit');
 
     const [users, setUsers] = useState<Data[]>([]);
-    const {userData, setUserData} = useUserContext();
+    const {userData, setUserData, dataSource, setDataSource} = useUserContext();
 //
     const [hasMore, setHasMore] = useState(true);
     const [page, setPage] = useState(1);
     const limit = 10;
 
-    const [dataSource, setDataSource] = useState<'local' | 'gorest'>('local');
+    // const [dataSource, setDataSource] = useState<'local' | 'gorest'>('local');
 
     useEffect(() => {                   //only for async
         console.log("fetch")

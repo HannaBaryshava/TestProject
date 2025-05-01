@@ -18,6 +18,11 @@ class GoRestController
 
         $ch = curl_init();
 
+        if (!empty($_COOKIE['session_token'])) {
+            $cookieValue = $_COOKIE['session_token'];
+            $headers[] = "Cookie: session_token={$cookieValue}";
+        }
+
         curl_setopt_array($ch, [
             CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
@@ -118,7 +123,7 @@ class GoRestController
             return;
         }
 
-        foreach ($users as $user) {
+        foreach ($users as &$user) {
             if (empty($user['city'])) {
                 $user['city'] = 'city';
             }
@@ -249,10 +254,14 @@ class GoRestController
         if ($error) {
             http_response_code(500);
             echo json_encode([
-                "data" => [],
                 "errors" => ["curl" => $error],
                 "message" => ["Failed to connect to GoRest API"]
             ]);
+            return;
+        }
+
+        if ($httpCode === 204) {
+            http_response_code(204);
             return;
         }
 
@@ -262,7 +271,7 @@ class GoRestController
         echo json_encode([
             "data" => $responseData,
             "errors" => [],
-            "message" => ["User deleted successfully"]
+            "message" => ["User deleted successfully or error info from API"]
         ]);
     }
 
