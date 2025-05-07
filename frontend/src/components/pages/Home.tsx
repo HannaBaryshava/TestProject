@@ -22,7 +22,7 @@ const Home = () => {
 
     useEffect(() => {                   //only for async
         console.log("fetch")
-        fetchUsersData(page, dataSource, limit, setUsers, setHasMore);
+        fetchUsersData(page, dataSource, limit, setUsers, setHasMore); //  setUsers, setHasMore skip, setting after fetchUsersData in useEffect
     }, [page, dataSource]);
 
     useEffect(() => {

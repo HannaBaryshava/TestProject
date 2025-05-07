@@ -1,0 +1,240 @@
+openapi: 3.0.0
+info:
+  title: 'GoRest API'
+  description: 'API для работы с пользователями GoREST'
+  contact:
+    email: support@gorest.com
+  version: 1.0.0
+paths:
+  /api/gorest/users:
+    get:
+      tags:
+        - GoREST
+      summary: 'Получить список пользователей GoREST'
+      operationId: 1b78ba4fabf24354578ffdcf47bf4968
+      parameters:
+        -
+          name: page
+          in: query
+          description: 'Номер страницы (по умолчанию 1)'
+          required: false
+          schema:
+            type: integer
+            default: 1
+        -
+          name: limit
+          in: query
+          description: 'Количество пользователей на странице (макс. 100)'
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 'Список пользователей успешно получен'
+          content:
+            application/json:
+              schema:
+                properties:
+                  data: { type: array, items: { properties: { id: { type: integer, example: 7877779 }, name: { type: string, example: 'Ganapati Desai' }, email: { type: string, format: email, example: desai_ganapati@harvey-deckow.example }, gender: { type: string, example: female }, status: { type: string, example: inactive }, city: { type: string, example: city }, country: { type: string, example: country } }, type: object } }
+                  errors: { type: array, items: { type: string } }
+                  message: { type: array, items: { type: string, example: 'Users fetched successfully' } }
+                type: object
+        '500':
+          description: 'Ошибка соединения или парсинга'
+    post:
+      tags:
+        - GoREST
+      summary: 'Создать нового пользователя GoREST'
+      operationId: 2d1ba900352200e576b941b3b4b8d7db
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  description: 'Имя пользователя'
+                  type: string
+                email:
+                  description: 'Email пользователя'
+                  type: string
+                  format: email
+                gender:
+                  description: 'Пол пользователя'
+                  type: string
+                status:
+                  description: 'Статус пользователя (например, active, inactive)'
+                  type: string
+                city:
+                  description: 'Город пользователя'
+                  type: string
+                country:
+                  description: 'Страна пользователя'
+                  type: string
+              type: object
+      responses:
+        '201':
+          description: 'Пользователь успешно создан'
+          content:
+            application/json:
+              schema:
+                properties:
+                  id: { description: 'ID созданного пользователя', type: integer }
+                  name: { description: 'Имя пользователя', type: string }
+                  email: { description: 'Email пользователя', type: string, format: email }
+                  gender: { description: 'Пол пользователя', type: string }
+                  status: { description: 'Статус пользователя', type: string }
+                  city: { description: 'Город пользователя', type: string }
+                  country: { description: 'Страна пользователя', type: string }
+                type: object
+        '400':
+          description: 'Неверный запрос, некорректные данные'
+        '500':
+          description: 'Ошибка сервера'
+  '/api/gorest/users/{userId}':
+    put:
+      tags:
+        - GoREST
+      summary: 'Обновить информацию о пользователе GoREST'
+      operationId: 93013fa13a4f7128073653efaed62861
+      parameters:
+        -
+          name: userId
+          in: path
+          description: 'ID пользователя для обновления'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  type: string
+                  example: 'Ganapati Desai'
+                email:
+                  type: string
+                  format: email
+                  example: desai_ganapati@harvey-deckow.example
+                gender:
+                  type: string
+                  example: female
+                status:
+                  type: string
+                  example: inactive
+                city:
+                  type: string
+                  example: city
+                country:
+                  type: string
+                  example: country
+              type: object
+      responses:
+        '200':
+          description: 'Пользователь успешно обновлен'
+          content:
+            application/json:
+              schema:
+                properties:
+                  data: { properties: { id: { type: integer, example: 7877779 }, name: { type: string, example: 'Ganapati Desai' }, email: { type: string, format: email, example: desai_ganapati@harvey-deckow.example }, gender: { type: string, example: female }, status: { type: string, example: inactive }, city: { type: string, example: city }, country: { type: string, example: country } }, type: object }
+                type: object
+        '400':
+          description: 'Неверный JSON в теле запроса'
+          content:
+            application/json:
+              schema:
+                properties:
+                  data: { type: object }
+                  errors: { type: array, items: { type: string } }
+                  message: { type: array, items: { type: string } }
+                type: object
+        '500':
+          description: 'Ошибка при подключении или выполнении запроса'
+    delete:
+      tags:
+        - GoREST
+      summary: 'Удалить пользователя GoREST'
+      operationId: 5d1af2afd147aa4c6dabb26827da736a
+      parameters:
+        -
+          name: userId
+          in: path
+          description: 'ID пользователя для удаления'
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: 'Пользователь успешно удален'
+        '404':
+          description: 'Пользователь не найден'
+        '500':
+          description: 'Ошибка сервера'
+  '/api/gorest/users/{id}':
+    patch:
+      tags:
+        - GoREST
+      summary: 'Обновить информацию о пользователе GoREST'
+      operationId: f4b6dbb644365f686518276adb4f5be0
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID пользователя для обновления'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  description: 'Имя пользователя'
+                  type: string
+                email:
+                  description: 'Email пользователя'
+                  type: string
+                  format: email
+                gender:
+                  description: 'Пол пользователя'
+                  type: string
+                status:
+                  description: 'Статус пользователя'
+                  type: string
+                city:
+                  description: 'Город пользователя'
+                  type: string
+                country:
+                  description: 'Страна пользователя'
+                  type: string
+              type: object
+      responses:
+        '200':
+          description: 'Пользователь успешно обновлен'
+          content:
+            application/json:
+              schema:
+                properties:
+                  id: { description: 'ID обновленного пользователя', type: integer }
+                  name: { description: 'Имя пользователя', type: string }
+                  email: { description: 'Email пользователя', type: string, format: email }
+                  gender: { description: 'Пол пользователя', type: string }
+                  status: { description: 'Статус пользователя', type: string }
+                  city: { description: 'Город пользователя', type: string }
+                  country: { description: 'Страна пользователя', type: string }
+                type: object
+        '400':
+          description: 'Неверный запрос, некорректные данные'
+        '404':
+          description: 'Пользователь не найден'
+        '500':
+          description: 'Ошибка сервера'
+tags:
+  -
+    name: GoREST
+    description: GoREST

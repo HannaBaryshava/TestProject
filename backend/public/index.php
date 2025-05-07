@@ -1,8 +1,18 @@
 <?php
-error_log("Request received at index.php");
-
 require __DIR__ . '/../bootstrap/autoload.php';
 
+use OpenApi\Annotations as OA;
+
+/**
+ * @OA\Info(
+ *     title="GoRest API",
+ *     version="1.0.0",
+ *     description="API для работы с пользователями GoREST",
+ *     @OA\Contact(
+ *         email="support@gorest.com"
+ *     )
+ * )
+ */
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     $origin = $_SERVER['HTTP_ORIGIN'] ?? '';

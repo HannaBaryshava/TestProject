@@ -1,0 +1,11 @@
+{
+    "require": {
+        "zircote/swagger-php": "^5.1",
+      "ext-curl": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "app\\": "backend/app/"
+        }
+    }
+}
