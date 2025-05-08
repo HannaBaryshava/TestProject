@@ -6,7 +6,7 @@ import FormGroup from "./ui/FormGroup.tsx";
 // import Pagination from './Pagination';
 import Modal from './Modal';
 import { StatusLabel } from './ui/StatusLabel.tsx';
-import { fetchData, handleDelete, deleteSelectedUsers } from '../api/action.ts';
+import { fetchData, deleteUser, deleteSelectedUsers } from '../api/action.ts';
 
 const tableStyles = {
     section: "bg-white flex flex-col gap-2.5 p-2 md:p-4 lg:p-6 rounded-lg shadow-md",
@@ -32,6 +32,7 @@ interface DataTableProps {
     onEditClick: (user: Data) => void;
     onDataFetched: (data: Data[]) => void;
     onDelete: (userId: number) => void;
+    dataSource: 'local' | 'gorest';
 }
 
 export interface SortingState {
@@ -97,7 +98,8 @@ const HeaderCell: React.FC<HeaderCellProps>  = ({
 export default function DataTable({   data,
                                       onEditClick,
                                       onDataFetched,
-                                      onDelete
+                                      onDelete,
+                                      dataSource
                                   }: DataTableProps) {
 
     const { setUserData } = useUserContext();
@@ -289,9 +291,10 @@ export default function DataTable({   data,
                     onConfirmDelete={() => {
                         const idsToDelete = Array.from(selectedUsers);
                         if (isMassDelete) {
-                            deleteSelectedUsers(selectedUsers, onDelete);
+                            deleteSelectedUsers(selectedUsers, onDelete, dataSource);
                         } else {
-                            idsToDelete.forEach(id => handleDelete(id, onDelete));
+                            // idsToDelete.forEach(id => deleteUser(id, onDelete));
+                            idsToDelete.forEach(id => deleteUser(id, onDelete, dataSource));
                         }
                         setIsDeleteModalOpen(false);
                         setSelectedUsers(new Set()); // Очищаем выбор
@@ -301,6 +304,7 @@ export default function DataTable({   data,
                             ? `Are you sure you want to delete this user?`   //${Array.from(selectedUsers)[0]} - exact id
                             : `Are you sure you want to delete ${selectedUsers.size} selected users?`
                     }
+                    dataSource={dataSource}
                 />
             )}
 

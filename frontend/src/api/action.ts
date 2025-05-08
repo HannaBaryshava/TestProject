@@ -4,8 +4,7 @@
 import {IResponse} from '../components/pages/UserForm.tsx';
 import {Data} from '../components/pages/UserForm.tsx';
 import {SortingState} from '../components/DataTable.tsx';
-import { SetStateAction } from 'react';
-
+// import { SetStateAction } from 'react';
 
 interface ValidationRule {
     value: any;
@@ -195,6 +194,7 @@ export const handleEditSubmit = async (
         message: IResponse<Data>['message']
     },
     formData: FormData,
+    dataSource: 'local' | 'gorest'
 ): Promise<IResponse<Data>> => {
     console.log("prevState:", prevState);
     console.log("formData:", formData);
@@ -230,8 +230,14 @@ export const handleEditSubmit = async (
     //     return result;
     // }
 
+    const endpoint =
+        dataSource === 'local'
+            ? `http://localhost:80/api/users/update/${body.id}`
+            : `http://localhost:80/api/gorest/users/${body.id}`;
+
     try {
-        const response = await fetch(`http://localhost:80/api/users/update/${body.id}`, {
+        const response = await fetch(endpoint, {
+        // const response = await fetch(`http://localhost:80/api/users/update/${body.id}`, {
         // const response = await fetch(` http://localhost/api/gorest/users/${body.id}`, {
             method: 'PUT',
             headers: {
@@ -294,19 +300,21 @@ export const fetchData = async (sortParams: SortingState, onDataFetched: (data: 
 };
 
 
-export const handleDelete = (userId: number, onDelete: (userId: number) => void) => {       //move to actions
-    // fetch(`http://localhost/api/gorest/users/${userId}`, {
-    fetch(`http://localhost:80/api/users/delete/${userId}`, {
+export const deleteUser = (
+                            userId: number,
+                           onDelete: (userId: number) => void,
+                           source: 'local' | 'gorest') => {
+    const endpoint = source === 'local'
+        ? `http://localhost:80/api/users/delete/${userId}`
+        : `http://localhost/api/gorest/users/${userId}`;
+
+    fetch(endpoint, {
         method: 'DELETE',
         credentials: 'include',
         headers: {
             "Content-Type": "application/json",
         }
     })
-        // .then(res => res.json())
-        // .then(() => {
-        //     onDelete(userId);
-        // })
         .then(res => {
             // Обрабатываем успешные ответы без тела
             if (res.status === 204) {
@@ -314,7 +322,6 @@ export const handleDelete = (userId: number, onDelete: (userId: number) => void)
                 return;
             }
 
-            // Парсим JSON только для ответов с телом
             return res.json().then(data => {
                 if (!res.ok) {
                     throw new Error(data.message?.join(', ') || 'Ошибка удаления');
@@ -325,7 +332,10 @@ export const handleDelete = (userId: number, onDelete: (userId: number) => void)
         .catch(error => console.error('Error deleting user:', error));
 };
 
-export const deleteSelectedUsers = (selectedUsers: Set<number>, onDelete: (userId: number) => void) => {                     //move to actions
+export const deleteSelectedUsers = (
+    selectedUsers: Set<number>,
+    onDelete: (userId: number) => void,
+    source: 'local' | 'gorest') => {
     const selectedUserIds = Array.from(selectedUsers);
 
     if (selectedUserIds.length === 0) {
@@ -333,13 +343,14 @@ export const deleteSelectedUsers = (selectedUsers: Set<number>, onDelete: (userI
         return;
     }
 
-    fetch('http://localhost:80/api/users/delete', {
-        method: 'DELETE',
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userIds: selectedUserIds })
-    })
+    if (source === 'local') {
+        fetch('http://localhost:80/api/users/delete', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userIds: selectedUserIds }),
+        })
         .then(res => {
             if (!res.ok) {
                 throw new Error('Network response was not ok');
@@ -348,21 +359,39 @@ export const deleteSelectedUsers = (selectedUsers: Set<number>, onDelete: (userI
         })
         .then(response => {
             if (response.errors && Object.keys(response.errors).length > 0) {
-                console.error('Error deleting users:', response.errors);
+                console.error('Ошибка при удалении пользователей:', response.errors);
             } else {
                 selectedUserIds.forEach(userId => onDelete(userId));
             }
         })
         .catch(error => {
-            console.error('Error deleting users:', error);
+            console.error('Ошибка при удалении пользователей:', error);
         });
+    } else {
+        // Отправка запроса на каждый ID отдельно
+        selectedUserIds.forEach(userId => {
+            fetch(`http://localhost:80/api/gorest/users/${userId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error(`Ошибка удаления пользователя ${userId}`);
+                    }
+                    onDelete(userId);
+                })
+                .catch(error => {
+                    console.error(`Ошибка при удалении пользователя ${userId}:`, error);
+                });
+        });
+    }
 };
 
 export const fetchUsersData = async (currentPage: number,
                                      source: 'local' | 'gorest',
                                      limit: number,
-                                     setUsers: (value: SetStateAction<Data[]>) => void,
-                                     setHasMore: (value: SetStateAction<boolean>) => void
 ) => {
     try {
 
@@ -383,17 +412,8 @@ export const fetchUsersData = async (currentPage: number,
         }
 
         const responseData = await response.json();
-        const newUsers = responseData.data;
+        return responseData.data;
 
-        setUsers((prev) => {
-            const all = [...prev, ...newUsers];
-            const unique = Array.from(new Map(all.map(user => [user.id, user])).values());
-            return unique;
-        });
-
-        if (newUsers.length < limit) {
-            setHasMore(false);
-        }
     } catch (err) {
         console.log('Ошибка при получении пользователей:', err);
     }

@@ -17,6 +17,7 @@ interface ModalProps {
     onEdit?: (updatedData: Data) => void;
     userData?: Data | null;
     message?: string;
+    dataSource: 'local' | 'gorest';
 }
 
 export default function Modal({   onClose,
@@ -24,15 +25,25 @@ export default function Modal({   onClose,
                                   onConfirmDelete,
                                   onEdit,
                                   userData,
-                                  message
+                                  message,
+                                  dataSource
                               }: ModalProps ) {
     const { setUserData } = useUserContext();
 
-    const [state, formAction, isPending] = useActionState<IResponse<Data>, FormData>(handleEditSubmit, {
-        errors: {},
-        message: [],
-        data: userData ? { ...userData } : {} as Data
-    });
+    // const [state, formAction, isPending] = useActionState<IResponse<Data>, FormData>(handleEditSubmit, {
+    //     errors: {},
+    //     message: [],
+    //     data: userData ? { ...userData } : {} as Data
+    // });
+
+    const [state, formAction, isPending] = useActionState<IResponse<Data>, FormData>(
+        (prevState, formData) => handleEditSubmit(prevState, formData, dataSource),
+        {
+            errors: {},
+            message: [],
+            data: userData ? { ...userData } : {} as Data,
+        }
+    );
 
 
     useEffect(() => {
